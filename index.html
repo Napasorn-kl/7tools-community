@@ -357,18 +357,103 @@ function getShareURL() {
   return base + '?sheet=' + encodeURIComponent(url);
 }
 
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(()=>{
+    toast('คัดลอกแล้ว 📋','green');
+  }).catch(()=>{
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    toast('คัดลอกแล้ว 📋','green');
+  });
+}
+
 function copyShareURL() {
   const u = getShareURL();
   if (!u) { toast('ยังไม่ได้เชื่อมต่อ Sheets','red'); return; }
-  navigator.clipboard.writeText(u).then(()=>{
-    toast('คัดลอก URL สำเร็จ 📋','green');
-  }).catch(()=>{
-    // fallback
-    const ta = document.createElement('textarea');
-    ta.value = u; document.body.appendChild(ta); ta.select();
-    document.execCommand('copy'); document.body.removeChild(ta);
-    toast('คัดลอก URL สำเร็จ 📋','green');
-  });
+  copyText(u);
+}
+
+// ── URL Shortener (is.gd — free, CORS-friendly) ─────────
+const SHORT_URL_KEY = 'gs_short_url';
+
+async function shortenURL(longUrl) {
+  // Return cached short URL if same long URL
+  try {
+    const cached = JSON.parse(localStorage.getItem(SHORT_URL_KEY)||'null');
+    if (cached && cached.long === longUrl) return cached.short;
+  } catch(_) {}
+
+  try {
+    const res = await fetch(
+      `https://is.gd/create.php?format=simple&url=${encodeURIComponent(longUrl)}`
+    );
+    if (!res.ok) throw new Error('API error');
+    const short = (await res.text()).trim();
+    if (short.startsWith('http')) {
+      localStorage.setItem(SHORT_URL_KEY, JSON.stringify({ long: longUrl, short }));
+      return short;
+    }
+  } catch(e) { console.warn('Shorten failed', e); }
+  return null; // fallback to long URL
+}
+
+async function renderShareBox() {
+  const shareBox = document.getElementById('share-url-box');
+  if (!shareBox) return;
+  const longUrl  = getShareURL();
+  if (!longUrl)  { shareBox.innerHTML = ''; return; }
+
+  // Show loading state immediately
+  shareBox.innerHTML = `
+    <div class="rounded-2xl p-4 bg-blue-50 border-2 border-blue-200 mb-4">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-xl">🔗</span>
+        <div>
+          <div class="font-bold text-blue-800 text-sm">URL สำหรับแชร์</div>
+          <div class="text-xs text-blue-500">คนที่เปิด URL นี้กรอกข้อมูลได้เลย ไม่ต้องตั้งค่า</div>
+        </div>
+      </div>
+      <div id="share-url-display" class="bg-white border-2 border-blue-100 rounded-xl px-4 py-3 mb-3 text-center text-sm text-gray-400 animate-pulse">
+        กำลังสร้าง URL สั้น...
+      </div>
+      <button onclick="copyShareURLShort()" id="copy-short-btn"
+        class="w-full py-3 rounded-xl font-bold text-white text-sm opacity-50 cursor-wait" style="background:#2563eb">
+        📋 คัดลอก URL
+      </button>
+    </div>`;
+
+  // Fetch short URL in background
+  const short = await shortenURL(longUrl);
+  const display = document.getElementById('share-url-display');
+  const copyBtn = document.getElementById('copy-short-btn');
+  if (!display) return;
+
+  if (short) {
+    window._currentShareUrl = short;
+    display.innerHTML = `
+      <div class="font-bold text-blue-700 text-base tracking-wide">${short}</div>
+      <div class="text-xs text-gray-400 mt-0.5">ส่งให้ผู้กรอกข้อมูลได้เลย</div>`;
+    display.className = 'bg-white border-2 border-blue-200 rounded-xl px-4 py-3 mb-3 text-center cursor-pointer';
+    display.onclick = () => copyText(short);
+  } else {
+    window._currentShareUrl = longUrl;
+    display.innerHTML = `<div class="text-xs font-mono text-gray-500 break-all">${longUrl}</div>`;
+    display.className = 'bg-white border-2 border-gray-200 rounded-xl px-4 py-3 mb-3 text-center cursor-pointer';
+    display.onclick = () => copyText(longUrl);
+  }
+
+  if (copyBtn) {
+    copyBtn.className = 'w-full py-3 rounded-xl font-bold text-white text-sm';
+    copyBtn.style.background = '#2563eb';
+    copyBtn.style.cursor = 'pointer';
+  }
+}
+
+function copyShareURLShort() {
+  const u = window._currentShareUrl || getShareURL();
+  if (!u) { toast('ยังไม่ได้เชื่อมต่อ Sheets','red'); return; }
+  copyText(u);
 }
 
 async function pushToSheets(toolKey, record) {
@@ -775,23 +860,7 @@ function showConnected() {
   const url = getSheetsURL();
   const inp = document.getElementById('sheets-url-input');
   if (inp) inp.value = url;
-  // Render share URL section
-  const shareBox = document.getElementById('share-url-box');
-  if (shareBox) {
-    const shareUrl = getShareURL();
-    shareBox.innerHTML = `
-      <div class="rounded-2xl p-4 bg-blue-50 border-2 border-blue-200">
-        <div class="flex items-center gap-2 mb-2">
-          <span class="text-lg">🔗</span>
-          <div class="font-bold text-blue-800 text-sm">URL สำหรับแชร์ให้ผู้อื่นกรอกข้อมูล</div>
-        </div>
-        <p class="text-xs text-blue-600 mb-3">คนที่เปิด URL นี้จะส่งข้อมูลเข้า Google Sheet ของคุณโดยอัตโนมัติ — ไม่ต้องตั้งค่าอะไรเพิ่ม</p>
-        <div class="bg-white border border-blue-200 rounded-xl p-3 mb-3 font-mono text-xs text-gray-500 break-all select-all">${shareUrl}</div>
-        <button onclick="copyShareURL()" class="w-full py-3 rounded-xl font-bold text-white text-sm" style="background:#2563eb">
-          📋 คัดลอก URL สำหรับแชร์
-        </button>
-      </div>`;
-  }
+  renderShareBox(); // async — shows loading then short URL
   renderSettingsBanner();
 }
 
