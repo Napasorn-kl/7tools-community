@@ -609,30 +609,102 @@ const WIZ_STEPS = [
   {
     icon:'🚀', color:'#ea580c', bg:'#fff7ed', border:'#fdba74',
     title:'Deploy เป็น Web App',
-    body:`<p class="text-gray-600 text-sm mb-4">ใน Apps Script editor ทำตามนี้:</p>
-    <div class="space-y-3">
-      <div class="flex items-start gap-3 p-3 rounded-xl bg-orange-50 border border-orange-100">
-        <div class="w-7 h-7 rounded-full bg-orange-200 text-orange-800 font-bold text-sm flex items-center justify-center flex-shrink-0 mt-0.5">1</div>
-        <div class="text-sm text-gray-700">กดปุ่ม <span class="font-bold bg-blue-600 text-white px-2 py-0.5 rounded text-xs">Deploy</span> (มุมบนขวา)</div>
+    body:`
+    <!-- Sub-step 1 -->
+    <div class="mb-3">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="w-6 h-6 rounded-full bg-orange-400 text-white font-bold text-xs flex items-center justify-center flex-shrink-0">1</div>
+        <span class="font-bold text-gray-800 text-sm">กดปุ่ม Deploy มุมบนขวา</span>
       </div>
-      <div class="flex items-start gap-3 p-3 rounded-xl bg-orange-50 border border-orange-100">
-        <div class="w-7 h-7 rounded-full bg-orange-200 text-orange-800 font-bold text-sm flex items-center justify-center flex-shrink-0 mt-0.5">2</div>
-        <div class="text-sm text-gray-700">เลือก <span class="font-bold bg-gray-100 px-2 py-0.5 rounded">New deployment</span></div>
-      </div>
-      <div class="flex items-start gap-3 p-3 rounded-xl bg-orange-50 border border-orange-100">
-        <div class="w-7 h-7 rounded-full bg-orange-200 text-orange-800 font-bold text-sm flex items-center justify-center flex-shrink-0 mt-0.5">3</div>
-        <div class="text-sm text-gray-700">
-          ตั้งค่าดังนี้:<br>
-          <span class="inline-flex flex-col gap-1 mt-1.5">
-            <span>Type → <strong>Web app</strong></span>
-            <span>Execute as → <strong>Me</strong></span>
-            <span>Who has access → <strong>Anyone</strong></span>
-          </span>
+      <div class="rounded-xl overflow-hidden border border-gray-200 mb-1">
+        <div class="bg-gray-100 px-3 py-1.5 flex items-center gap-2 border-b border-gray-200">
+          <div class="flex gap-1"><div class="w-2 h-2 rounded-full bg-red-400"></div><div class="w-2 h-2 rounded-full bg-yellow-400"></div><div class="w-2 h-2 rounded-full bg-green-400"></div></div>
+          <div class="flex-1 text-xs text-gray-400 text-center">script.google.com</div>
+        </div>
+        <div class="bg-white px-3 py-2 flex items-center justify-between">
+          <span class="text-xs text-gray-500 font-medium">⚡ Apps Script — Code.gs</span>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-gray-400 border border-gray-200 px-2 py-1 rounded-lg">▶ Run</span>
+            <span class="text-xs font-bold text-white px-3 py-1 rounded-lg animate-pulse" style="background:#1a73e8">Deploy ▾</span>
+          </div>
         </div>
       </div>
-      <div class="flex items-start gap-3 p-3 rounded-xl bg-orange-50 border border-orange-100">
-        <div class="w-7 h-7 rounded-full bg-orange-200 text-orange-800 font-bold text-sm flex items-center justify-center flex-shrink-0 mt-0.5">4</div>
-        <div class="text-sm text-gray-700">กด <strong>Deploy</strong> → <strong>Authorize access</strong> → Copy URL</div>
+      <p class="text-xs text-gray-400">ปุ่มสีน้ำเงิน <strong>Deploy</strong> อยู่มุมขวาบนของหน้า Apps Script</p>
+    </div>
+
+    <!-- Sub-step 2 -->
+    <div class="mb-3">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="w-6 h-6 rounded-full bg-orange-400 text-white font-bold text-xs flex items-center justify-center flex-shrink-0">2</div>
+        <span class="font-bold text-gray-800 text-sm">เลือก New deployment</span>
+      </div>
+      <div class="bg-white border border-gray-200 rounded-xl overflow-hidden mb-1">
+        <div class="px-4 py-2.5 text-sm font-bold text-white flex items-center gap-2" style="background:#1a73e8">
+          <span>➕</span> New deployment ← <span class="font-normal text-blue-200 text-xs">เลือกอันนี้</span>
+        </div>
+        <div class="px-4 py-2 text-sm text-gray-400 border-t border-gray-100">Manage deployments</div>
+      </div>
+    </div>
+
+    <!-- Sub-step 3 -->
+    <div class="mb-3">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="w-6 h-6 rounded-full bg-orange-400 text-white font-bold text-xs flex items-center justify-center flex-shrink-0">3</div>
+        <span class="font-bold text-gray-800 text-sm">ตั้งค่า 3 อย่างนี้</span>
+      </div>
+      <div class="bg-white border-2 border-orange-200 rounded-2xl overflow-hidden">
+        <div class="px-4 py-3 border-b border-gray-100">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <div class="text-xs font-bold text-gray-500 uppercase tracking-wide">Type / ประเภท</div>
+              <div class="font-bold text-gray-800 mt-0.5">Web app</div>
+              <div class="text-xs text-orange-600 mt-0.5">= โปรแกรมที่เข้าถึงผ่านอินเทอร์เน็ตได้</div>
+            </div>
+            <span class="text-green-500 text-lg flex-shrink-0">✓</span>
+          </div>
+        </div>
+        <div class="px-4 py-3 border-b border-gray-100">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <div class="text-xs font-bold text-gray-500 uppercase tracking-wide">Execute as / รันในนามของ</div>
+              <div class="font-bold text-gray-800 mt-0.5">Me (ฉัน)</div>
+              <div class="text-xs text-orange-600 mt-0.5">= ใช้สิทธิ์ Google account ของคุณเขียนข้อมูล</div>
+            </div>
+            <span class="text-green-500 text-lg flex-shrink-0">✓</span>
+          </div>
+        </div>
+        <div class="px-4 py-3">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <div class="text-xs font-bold text-gray-500 uppercase tracking-wide">Who has access / ใครเข้าได้</div>
+              <div class="font-bold text-gray-800 mt-0.5">Anyone (ทุกคน)</div>
+              <div class="text-xs text-orange-600 mt-0.5">= แอปส่งข้อมูลได้โดยไม่ต้อง login</div>
+            </div>
+            <span class="text-green-500 text-lg flex-shrink-0">✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sub-step 4 -->
+    <div class="mb-1">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="w-6 h-6 rounded-full bg-orange-400 text-white font-bold text-xs flex items-center justify-center flex-shrink-0">4</div>
+        <span class="font-bold text-gray-800 text-sm">Authorize → Copy URL</span>
+      </div>
+      <div class="space-y-2">
+        <div class="flex items-center gap-2 p-2.5 rounded-xl bg-orange-50 border border-orange-100">
+          <span class="text-base">🔐</span>
+          <div class="text-xs text-gray-700">กด <strong>Deploy</strong> → กด <strong>Authorize access</strong> → เลือก Google account → กด <strong>Allow</strong></div>
+        </div>
+        <div class="flex items-center gap-2 p-2.5 rounded-xl bg-green-50 border border-green-100">
+          <span class="text-base">🔗</span>
+          <div class="text-xs text-gray-700">จะได้ URL ที่ขึ้นต้นด้วย <strong>https://script.google.com/macros/s/.../exec</strong> — กด Copy</div>
+        </div>
+        <div class="flex items-center gap-2 p-2.5 rounded-xl bg-blue-50 border border-blue-100">
+          <span class="text-base">⚠️</span>
+          <div class="text-xs text-blue-700">ถ้าขึ้น "Google hasn't verified this app" → กด <strong>Advanced</strong> → <strong>Go to ... (unsafe)</strong> → ไม่เป็นไร เป็น script ของคุณเอง</div>
+        </div>
       </div>
     </div>`
   },
