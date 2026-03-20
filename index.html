@@ -535,6 +535,7 @@ function closeSheet() {
 
 // ─── SETTINGS ────────────────────────────────────────────
 let wizStep = 0;
+let wizUrlVal = '';
 const WIZ_STEPS = [
   {
     icon:'📊', color:'#16a34a', bg:'#f0fdf4', border:'#86efac',
@@ -717,7 +718,8 @@ const WIZ_STEPS = [
       <p class="text-xs font-mono text-blue-600 break-all">https://script.google.com/macros/s/<span class="text-orange-500">AKfycb...</span>/exec</p>
     </div>
     <input id="wiz-url-input" type="url" class="fi mb-3" placeholder="วาง URL ที่นี่..."
-      style="font-size:15px;font-weight:600">
+      style="font-size:15px;font-weight:600"
+      oninput="wizUrlVal=this.value" onpaste="setTimeout(()=>{wizUrlVal=this.value},50)">
     <button onclick="finishWizard()"
       class="w-full py-4 rounded-2xl font-bold text-white text-base mb-2" style="background:#2563eb">
       ✅ เชื่อมต่อเลย!
@@ -743,22 +745,19 @@ function showConnected() {
   renderSettingsBanner();
 }
 
+function wizNext() { if(wizStep < WIZ_STEPS.length-1){ wizStep++; renderWizStep(); } }
+function wizBack() { if(wizStep > 0){ wizStep--; renderWizStep(); } }
+
 function renderWizStep() {
   const s = WIZ_STEPS[wizStep];
   const total = WIZ_STEPS.length;
-
-  // dots
   document.getElementById('wiz-dots').innerHTML = WIZ_STEPS.map((_,i)=>
     `<div style="width:${i===wizStep?'24px':'8px'};height:8px;border-radius:4px;background:${i===wizStep?'#2563eb':i<wizStep?'#93c5fd':'#e2e8f0'};transition:all .2s"></div>`
   ).join('');
-
-  // card
   document.getElementById('wiz-steps').innerHTML = `
     <div class="rounded-2xl p-5 mb-4 border-2" style="background:${s.bg};border-color:${s.border}">
       <div class="flex items-center gap-3 mb-4">
-        <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0" style="background:${s.border}">
-          ${s.icon}
-        </div>
+        <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0" style="background:${s.border}">${s.icon}</div>
         <div>
           <div class="text-xs font-semibold" style="color:${s.color}">ขั้นตอนที่ ${wizStep+1} จาก ${total}</div>
           <div class="font-bold text-gray-800 text-base leading-tight mt-0.5">${s.title}</div>
@@ -766,50 +765,44 @@ function renderWizStep() {
       </div>
       ${s.body}
     </div>`;
-
-  // nav buttons
+  // restore URL value if on last step
+  if (wizStep === WIZ_STEPS.length - 1 && wizUrlVal) {
+    const inp = document.getElementById('wiz-url-input');
+    if (inp) inp.value = wizUrlVal;
+  }
   const back = document.getElementById('wiz-back');
   const next = document.getElementById('wiz-next');
   if (wizStep === 0) back.classList.add('hidden'); else back.classList.remove('hidden');
-  if (wizStep === total-1) {
-    next.classList.add('hidden');
-  } else {
-    next.classList.remove('hidden');
-    next.textContent = wizStep === total-2 ? 'ถัดไป →' : 'ถัดไป →';
-  }
-}
-
-function wizNext() { if(wizStep < WIZ_STEPS.length-1){ wizStep++; renderWizStep(); } }
-function wizBack() { if(wizStep > 0){ wizStep--; renderWizStep(); } }
-
-function getWizUrl() {
-  const wiz = document.getElementById('wiz-url-input');
-  return wiz ? wiz.value.trim() : '';
+  if (wizStep === total-1) next.classList.add('hidden'); else next.classList.remove('hidden');
 }
 
 async function finishWizard() {
-  const url = getWizUrl();
-  if (!url) { toast('กรุณาวาง URL ก่อน','red'); document.getElementById('wiz-url-input')?.focus(); return; }
+  // read from global var first, fallback to element
+  const inp = document.getElementById('wiz-url-input');
+  if (inp && inp.value.trim()) wizUrlVal = inp.value.trim();
+  const url = wizUrlVal.trim();
+  if (!url) { toast('กรุณาวาง URL ก่อน','red'); inp?.focus(); return; }
   if (!url.startsWith('https://script.google.com')) {
     toast('URL ไม่ถูกต้อง — ต้องขึ้นต้นด้วย https://script.google.com','red'); return;
   }
   setSheetsURL(url);
-  // sync to connected-state input
-  const inp = document.getElementById('sheets-url-input');
-  if (inp) inp.value = url;
-  syncStatus='connected';
+  const si = document.getElementById('sheets-url-input');
+  if (si) si.value = url;
+  syncStatus='connected'; wizUrlVal='';
   updateStatusUI(); showConnected(); renderSettingsBanner();
   toast('เชื่อมต่อ Google Sheets สำเร็จ 🎉','green');
 }
 
 async function testWizUrl() {
-  const url = getWizUrl();
-  if (!url) { toast('กรุณาวาง URL ก่อน','red'); document.getElementById('wiz-url-input')?.focus(); return; }
+  const inp = document.getElementById('wiz-url-input');
+  if (inp && inp.value.trim()) wizUrlVal = inp.value.trim();
+  const url = wizUrlVal.trim();
+  if (!url) { toast('กรุณาวาง URL ก่อน','red'); inp?.focus(); return; }
   toast('กำลังทดสอบ...','blue');
   const ok = await testConnection(url);
   if (ok) {
     setSheetsURL(url); syncStatus='connected';
-    toast('เชื่อมต่อสำเร็จ 🎉 กด "เชื่อมต่อเลย!" ได้เลย','green');
+    toast('✅ เชื่อมต่อสำเร็จ! กด "เชื่อมต่อเลย!" ได้เลย','green');
   } else {
     syncStatus='error';
     toast('เชื่อมต่อล้มเหลว — ตรวจสอบ URL อีกครั้ง','red');
