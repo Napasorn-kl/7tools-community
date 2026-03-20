@@ -169,107 +169,68 @@ details > summary::-webkit-details-marker { display:none; }
   <div id="settings-backdrop" onclick="closeSettings()"></div>
   <div id="settings-panel" class="slide-up">
     <div class="sheet-pill"></div>
-    <div class="px-5 pb-4">
+    <div class="px-5 pb-2">
 
       <!-- Header -->
-      <div class="flex items-center justify-between mb-5">
+      <div class="flex items-center justify-between mb-4">
         <div>
           <h2 class="text-lg font-bold text-gray-800">เชื่อมต่อ Google Sheets</h2>
-          <p class="text-sm text-gray-400 mt-0.5">สำรองข้อมูลบน Cloud ฟรี 100%</p>
+          <p class="text-xs text-gray-400 mt-0.5">สำรองข้อมูลบน Cloud ฟรี 100%</p>
         </div>
         <button onclick="closeSettings()" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 text-xl font-bold">×</button>
       </div>
 
-      <!-- Status banner -->
-      <div id="settings-status-banner" class="rounded-2xl p-4 mb-5 hidden">
-        <div class="flex items-center gap-3">
-          <span id="banner-icon" class="text-2xl"></span>
-          <div>
-            <div id="banner-title" class="font-bold text-sm"></div>
-            <div id="banner-sub" class="text-xs mt-0.5"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- URL Input -->
-      <div class="mb-4">
-        <label class="block text-sm font-semibold text-gray-700 mb-2">Apps Script Web App URL</label>
-        <input id="sheets-url-input" type="url" class="fi" placeholder="https://script.google.com/macros/s/.../exec"
-          value="">
-        <p class="text-xs text-gray-400 mt-2">วาง URL ที่ได้จากการ Deploy Apps Script (ดูขั้นตอนด้านล่าง)</p>
-      </div>
-
-      <div class="flex gap-3 mb-6">
-        <button onclick="testSheetsConnection()" class="flex-1 bg-blue-50 text-blue-700 font-semibold py-3 rounded-xl text-sm border-2 border-blue-200">
-          🔍 ทดสอบการเชื่อมต่อ
-        </button>
-        <button onclick="saveSheetsURL()" class="flex-1 bg-blue-600 text-white font-semibold py-3 rounded-xl text-sm">
-          💾 บันทึก
-        </button>
-      </div>
-
-      <div class="border-t border-gray-100 pt-5">
-        <p class="text-sm font-bold text-gray-700 mb-4">📋 วิธีตั้งค่า (ทำครั้งเดียว)</p>
-
-        <!-- Steps -->
-        <div class="space-y-4">
-          <div class="flex gap-3">
-            <div class="step-num">1</div>
-            <div>
-              <p class="font-semibold text-sm text-gray-800">สร้าง Google Sheet ใหม่</p>
-              <a href="https://sheets.new" target="_blank" class="inline-block mt-1 text-xs text-blue-600 underline">คลิกที่นี่ → sheets.new</a>
-            </div>
-          </div>
-
-          <div class="flex gap-3">
-            <div class="step-num">2</div>
-            <div>
-              <p class="font-semibold text-sm text-gray-800">เปิด Apps Script</p>
-              <p class="text-xs text-gray-500 mt-0.5">เมนู <strong>Extensions</strong> → <strong>Apps Script</strong></p>
-            </div>
-          </div>
-
-          <div class="flex gap-3">
-            <div class="step-num">3</div>
+      <!-- ── CONNECTED STATE ── -->
+      <div id="connected-state" class="hidden">
+        <div id="settings-status-banner" class="rounded-2xl p-4 mb-4 hidden">
+          <div class="flex items-center gap-3">
+            <span id="banner-icon" class="text-2xl"></span>
             <div class="flex-1">
-              <p class="font-semibold text-sm text-gray-800 mb-2">วาง Code นี้ใน editor</p>
-              <div class="relative">
-                <div class="code-block text-xs" id="gs-preview">// วาง code จากไฟล์ .claude/appscript.gs
-// หรือกดปุ่มด้านล่างเพื่อ copy</div>
-                <button onclick="copyGSCode()" class="absolute top-2 right-2 bg-white/10 hover:bg-white/20 text-white text-xs px-3 py-1.5 rounded-lg font-semibold transition-all" id="copy-gs-btn">
-                  📋 Copy
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="flex gap-3">
-            <div class="step-num">4</div>
-            <div>
-              <p class="font-semibold text-sm text-gray-800">Deploy เป็น Web App</p>
-              <div class="text-xs text-gray-500 mt-1 space-y-0.5">
-                <p>→ กด <strong>Deploy</strong> → <strong>New deployment</strong></p>
-                <p>→ Type: <strong>Web app</strong></p>
-                <p>→ Execute as: <strong>Me</strong></p>
-                <p>→ Who has access: <strong>Anyone</strong></p>
-                <p>→ กด <strong>Deploy</strong> → Copy URL</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="flex gap-3">
-            <div class="step-num">5</div>
-            <div>
-              <p class="font-semibold text-sm text-gray-800">วาง URL ด้านบน แล้วกด บันทึก</p>
+              <div id="banner-title" class="font-bold text-sm"></div>
+              <div id="banner-sub" class="text-xs mt-0.5"></div>
             </div>
           </div>
         </div>
-
-        <!-- Clear button -->
-        <button onclick="clearSheetsURL()" class="mt-5 w-full py-3 rounded-xl text-sm text-red-500 border-2 border-red-100 font-semibold">
+        <div class="mb-3">
+          <label class="block text-xs font-semibold text-gray-500 mb-1.5">Apps Script URL</label>
+          <input id="sheets-url-input" type="url" class="fi text-sm" placeholder="https://script.google.com/macros/s/.../exec">
+        </div>
+        <div class="flex gap-2 mb-4">
+          <button onclick="testSheetsConnection()" class="flex-1 bg-blue-50 text-blue-700 font-semibold py-3 rounded-xl text-sm border-2 border-blue-200">🔍 ทดสอบ</button>
+          <button onclick="saveSheetsURL()" class="flex-1 bg-blue-600 text-white font-semibold py-3 rounded-xl text-sm">💾 บันทึก</button>
+        </div>
+        <button onclick="clearSheetsURL()" class="w-full py-3 rounded-xl text-sm text-red-400 border border-red-100 font-semibold mb-4">
           🗑️ ยกเลิกการเชื่อมต่อ
         </button>
+        <button onclick="showWizard()" class="w-full py-3 rounded-xl text-sm text-gray-500 border border-gray-200 font-semibold">
+          📋 ดูวิธีตั้งค่าอีกครั้ง
+        </button>
       </div>
+
+      <!-- ── WIZARD STATE ── -->
+      <div id="wizard-state">
+        <!-- Progress dots -->
+        <div class="flex items-center justify-center gap-2 mb-5" id="wiz-dots"></div>
+
+        <!-- Step cards -->
+        <div id="wiz-steps"></div>
+
+        <!-- Nav buttons -->
+        <div class="flex gap-3 mt-2 mb-4">
+          <button id="wiz-back" onclick="wizBack()" class="flex-1 py-3.5 rounded-2xl text-sm font-bold border-2 border-gray-200 text-gray-500 hidden">
+            ← ย้อนกลับ
+          </button>
+          <button id="wiz-next" onclick="wizNext()" class="flex-1 py-3.5 rounded-2xl text-sm font-bold text-white" style="background:#2563eb">
+            ถัดไป →
+          </button>
+        </div>
+
+        <!-- Already have URL shortcut -->
+        <button onclick="showConnected()" class="w-full text-center text-xs text-gray-400 py-2 hover:text-blue-500">
+          มี URL แล้ว → วางตรงนี้ได้เลย
+        </button>
+      </div>
+
     </div>
   </div>
 </div>
@@ -573,10 +534,176 @@ function closeSheet() {
 }
 
 // ─── SETTINGS ────────────────────────────────────────────
+let wizStep = 0;
+const WIZ_STEPS = [
+  {
+    icon:'📊', color:'#16a34a', bg:'#f0fdf4', border:'#86efac',
+    title:'สร้าง Google Sheet ใหม่',
+    body:`<p class="text-gray-600 text-sm leading-relaxed mb-5">เราจะใช้ Google Sheet เป็นฐานข้อมูลฟรี ข้อมูลทุกอย่างจะซิงค์ขึ้น Cloud อัตโนมัติ</p>
+    <a href="https://sheets.new" target="_blank"
+      class="flex items-center justify-center gap-2 w-full py-4 rounded-2xl font-bold text-white text-base"
+      style="background:#16a34a">
+      🔗 เปิด Google Sheets ใหม่
+    </a>
+    <p class="text-xs text-center text-gray-400 mt-3">จะเปิด sheets.new ในแท็บใหม่ — ตั้งชื่อ Sheet ว่าอะไรก็ได้</p>`
+  },
+  {
+    icon:'⚙️', color:'#7c3aed', bg:'#faf5ff', border:'#d8b4fe',
+    title:'เปิด Apps Script',
+    body:`<p class="text-gray-600 text-sm leading-relaxed mb-4">ใน Google Sheet ที่เพิ่งสร้าง ให้ทำตามนี้:</p>
+    <div class="space-y-3">
+      <div class="flex items-center gap-3 p-3 rounded-xl bg-purple-50 border border-purple-100">
+        <div class="w-7 h-7 rounded-full bg-purple-200 text-purple-800 font-bold text-sm flex items-center justify-center flex-shrink-0">1</div>
+        <div class="text-sm text-gray-700">กดเมนู <span class="font-bold bg-gray-100 px-2 py-0.5 rounded">Extensions</span> (ส่วนขยาย)</div>
+      </div>
+      <div class="flex items-center gap-3 p-3 rounded-xl bg-purple-50 border border-purple-100">
+        <div class="w-7 h-7 rounded-full bg-purple-200 text-purple-800 font-bold text-sm flex items-center justify-center flex-shrink-0">2</div>
+        <div class="text-sm text-gray-700">เลือก <span class="font-bold bg-gray-100 px-2 py-0.5 rounded">Apps Script</span></div>
+      </div>
+      <div class="flex items-center gap-3 p-3 rounded-xl bg-purple-50 border border-purple-100">
+        <div class="w-7 h-7 rounded-full bg-purple-200 text-purple-800 font-bold text-sm flex items-center justify-center flex-shrink-0">3</div>
+        <div class="text-sm text-gray-700">จะเปิดหน้าต่าง editor ใหม่ขึ้นมา</div>
+      </div>
+    </div>`
+  },
+  {
+    icon:'📋', color:'#2563eb', bg:'#eff6ff', border:'#93c5fd',
+    title:'วาง Code ลงใน Editor',
+    body:`<p class="text-gray-600 text-sm mb-4">ลบ code เดิมทิ้งทั้งหมด แล้ววาง code นี้แทน:</p>
+    <div class="relative mb-4">
+      <div class="bg-slate-800 text-green-400 rounded-2xl p-4 text-xs font-mono leading-relaxed overflow-hidden" style="max-height:100px">
+        function doPost(e){...}<br>function doGet(e){...}<br>// <span class="text-blue-300">เครื่องมือ 7 ชิ้น API</span>
+      </div>
+      <button onclick="copyGSCode()" id="copy-gs-btn"
+        class="absolute inset-0 w-full h-full flex flex-col items-center justify-center rounded-2xl text-white font-bold text-sm gap-1"
+        style="background:rgba(15,23,42,0.6);backdrop-filter:blur(2px)">
+        <span class="text-3xl">📋</span>
+        <span>แตะเพื่อ Copy Code</span>
+      </button>
+    </div>
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-blue-700 space-y-1">
+      <p>วิธีวาง: <strong>Ctrl+A</strong> เพื่อเลือกทั้งหมด → <strong>Ctrl+V</strong> วาง</p>
+      <p>บน Mac: <strong>⌘A</strong> → <strong>⌘V</strong></p>
+    </div>`
+  },
+  {
+    icon:'🚀', color:'#ea580c', bg:'#fff7ed', border:'#fdba74',
+    title:'Deploy เป็น Web App',
+    body:`<p class="text-gray-600 text-sm mb-4">ใน Apps Script editor ทำตามนี้:</p>
+    <div class="space-y-3">
+      <div class="flex items-start gap-3 p-3 rounded-xl bg-orange-50 border border-orange-100">
+        <div class="w-7 h-7 rounded-full bg-orange-200 text-orange-800 font-bold text-sm flex items-center justify-center flex-shrink-0 mt-0.5">1</div>
+        <div class="text-sm text-gray-700">กดปุ่ม <span class="font-bold bg-blue-600 text-white px-2 py-0.5 rounded text-xs">Deploy</span> (มุมบนขวา)</div>
+      </div>
+      <div class="flex items-start gap-3 p-3 rounded-xl bg-orange-50 border border-orange-100">
+        <div class="w-7 h-7 rounded-full bg-orange-200 text-orange-800 font-bold text-sm flex items-center justify-center flex-shrink-0 mt-0.5">2</div>
+        <div class="text-sm text-gray-700">เลือก <span class="font-bold bg-gray-100 px-2 py-0.5 rounded">New deployment</span></div>
+      </div>
+      <div class="flex items-start gap-3 p-3 rounded-xl bg-orange-50 border border-orange-100">
+        <div class="w-7 h-7 rounded-full bg-orange-200 text-orange-800 font-bold text-sm flex items-center justify-center flex-shrink-0 mt-0.5">3</div>
+        <div class="text-sm text-gray-700">
+          ตั้งค่าดังนี้:<br>
+          <span class="inline-flex flex-col gap-1 mt-1.5">
+            <span>Type → <strong>Web app</strong></span>
+            <span>Execute as → <strong>Me</strong></span>
+            <span>Who has access → <strong>Anyone</strong></span>
+          </span>
+        </div>
+      </div>
+      <div class="flex items-start gap-3 p-3 rounded-xl bg-orange-50 border border-orange-100">
+        <div class="w-7 h-7 rounded-full bg-orange-200 text-orange-800 font-bold text-sm flex items-center justify-center flex-shrink-0 mt-0.5">4</div>
+        <div class="text-sm text-gray-700">กด <strong>Deploy</strong> → <strong>Authorize access</strong> → Copy URL</div>
+      </div>
+    </div>`
+  },
+  {
+    icon:'🔗', color:'#2563eb', bg:'#eff6ff', border:'#93c5fd',
+    title:'วาง URL แล้วเสร็จ!',
+    body:`<p class="text-gray-600 text-sm mb-4">วาง URL ที่ได้จาก Apps Script ด้านล่างนี้:</p>
+    <input id="sheets-url-input" type="url" class="fi mb-3" placeholder="https://script.google.com/macros/s/.../exec"
+      style="font-size:14px">
+    <button onclick="finishWizard()"
+      class="w-full py-4 rounded-2xl font-bold text-white text-base mb-3" style="background:#2563eb">
+      ✅ เชื่อมต่อเลย!
+    </button>
+    <button onclick="testSheetsConnection()" class="w-full py-3 rounded-2xl text-sm font-semibold text-blue-600 bg-blue-50 border-2 border-blue-200">
+      🔍 ทดสอบก่อนบันทึก
+    </button>`
+  }
+];
+
+function showWizard() {
+  wizStep = 0;
+  document.getElementById('connected-state').classList.add('hidden');
+  document.getElementById('wizard-state').classList.remove('hidden');
+  renderWizStep();
+}
+function showConnected() {
+  document.getElementById('wizard-state').classList.add('hidden');
+  document.getElementById('connected-state').classList.remove('hidden');
+  const url = getSheetsURL();
+  const inp = document.getElementById('sheets-url-input');
+  if (inp) inp.value = url;
+  renderSettingsBanner();
+}
+
+function renderWizStep() {
+  const s = WIZ_STEPS[wizStep];
+  const total = WIZ_STEPS.length;
+
+  // dots
+  document.getElementById('wiz-dots').innerHTML = WIZ_STEPS.map((_,i)=>
+    `<div style="width:${i===wizStep?'24px':'8px'};height:8px;border-radius:4px;background:${i===wizStep?'#2563eb':i<wizStep?'#93c5fd':'#e2e8f0'};transition:all .2s"></div>`
+  ).join('');
+
+  // card
+  document.getElementById('wiz-steps').innerHTML = `
+    <div class="rounded-2xl p-5 mb-4 border-2" style="background:${s.bg};border-color:${s.border}">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0" style="background:${s.border}">
+          ${s.icon}
+        </div>
+        <div>
+          <div class="text-xs font-semibold" style="color:${s.color}">ขั้นตอนที่ ${wizStep+1} จาก ${total}</div>
+          <div class="font-bold text-gray-800 text-base leading-tight mt-0.5">${s.title}</div>
+        </div>
+      </div>
+      ${s.body}
+    </div>`;
+
+  // nav buttons
+  const back = document.getElementById('wiz-back');
+  const next = document.getElementById('wiz-next');
+  if (wizStep === 0) back.classList.add('hidden'); else back.classList.remove('hidden');
+  if (wizStep === total-1) {
+    next.classList.add('hidden');
+  } else {
+    next.classList.remove('hidden');
+    next.textContent = wizStep === total-2 ? 'ถัดไป →' : 'ถัดไป →';
+  }
+}
+
+function wizNext() { if(wizStep < WIZ_STEPS.length-1){ wizStep++; renderWizStep(); } }
+function wizBack() { if(wizStep > 0){ wizStep--; renderWizStep(); } }
+
+async function finishWizard() {
+  const url = document.getElementById('sheets-url-input').value.trim();
+  if (!url) { toast('กรุณาวาง URL ก่อน','red'); return; }
+  if (!url.startsWith('https://script.google.com')) {
+    toast('URL ไม่ถูกต้อง ต้องเริ่มด้วย https://script.google.com','red'); return;
+  }
+  setSheetsURL(url); syncStatus='connected';
+  updateStatusUI(); showConnected(); renderSettingsBanner();
+  toast('เชื่อมต่อ Google Sheets สำเร็จ 🎉','green');
+}
+
 function openSettings() {
   const url = getSheetsURL();
-  document.getElementById('sheets-url-input').value = url;
-  renderSettingsBanner();
+  if (url) {
+    showConnected();
+  } else {
+    showWizard();
+  }
   document.getElementById('settings-modal').classList.add('open');
   document.body.style.overflow='hidden';
 }
@@ -588,16 +715,15 @@ function closeSettings() {
 function renderSettingsBanner() {
   const url = getSheetsURL();
   const banner = document.getElementById('settings-status-banner');
-  const icon   = document.getElementById('banner-icon');
-  const title  = document.getElementById('banner-title');
-  const sub    = document.getElementById('banner-sub');
+  if (!banner) return;
   if (!url) { banner.classList.add('hidden'); return; }
   banner.classList.remove('hidden');
   const ok = syncStatus==='connected';
-  banner.className = `rounded-2xl p-4 mb-5 ${ok?'bg-green-50 border-2 border-green-200':'bg-amber-50 border-2 border-amber-200'}`;
-  icon.textContent  = ok?'✅':'⚠️';
-  title.textContent = ok?'เชื่อมต่อ Google Sheets สำเร็จ':'ตั้งค่า URL แล้ว (ยังไม่ได้ทดสอบ)';
-  sub.textContent   = ok?'ข้อมูลจะถูกส่งขึ้น Sheets อัตโนมัติทุกครั้งที่บันทึก':'กด "ทดสอบการเชื่อมต่อ" เพื่อยืนยัน';
+  banner.className = `rounded-2xl p-4 mb-4 ${ok?'bg-green-50 border-2 border-green-200':'bg-amber-50 border-2 border-amber-200'}`;
+  document.getElementById('banner-icon').textContent = ok?'✅':'⚠️';
+  document.getElementById('banner-title').textContent = ok?'เชื่อมต่อ Google Sheets สำเร็จ':'ตั้งค่า URL แล้ว (ยังไม่ได้ทดสอบ)';
+  const sub = document.getElementById('banner-sub');
+  sub.textContent = ok?'ข้อมูลซิงค์อัตโนมัติทุกครั้งที่บันทึก':'กด "ทดสอบ" เพื่อยืนยัน';
   sub.className = `text-xs mt-0.5 ${ok?'text-green-600':'text-amber-600'}`;
 }
 
@@ -630,18 +756,22 @@ function saveSheetsURL() {
 function clearSheetsURL() {
   if (!confirm('ยกเลิกการเชื่อมต่อ Google Sheets?')) return;
   localStorage.removeItem(SHEETS_URL_KEY);
-  document.getElementById('sheets-url-input').value='';
+  const inp = document.getElementById('sheets-url-input');
+  if(inp) inp.value='';
   syncStatus='local';
-  renderSettingsBanner(); updateStatusUI();
+  showWizard(); updateStatusUI();
   toast('ยกเลิกการเชื่อมต่อแล้ว','red');
 }
 
 function copyGSCode() {
   navigator.clipboard.writeText(GS_CODE).then(()=>{
     const btn=document.getElementById('copy-gs-btn');
-    btn.textContent='✅ Copied!';
-    setTimeout(()=>btn.textContent='📋 Copy',2000);
-  }).catch(()=>toast('Copy ไม่ได้ — กด Ctrl+A ใน code block','red'));
+    btn.innerHTML='<span class="text-3xl">✅</span><span>Copied แล้ว!</span>';
+    setTimeout(()=>{
+      btn.innerHTML='<span class="text-3xl">📋</span><span>แตะเพื่อ Copy Code</span>';
+    },2000);
+    toast('Copy Code สำเร็จ — วางใน Apps Script ได้เลย','green');
+  }).catch(()=>toast('Copy ไม่ได้ — ลองอีกครั้ง','red'));
 }
 
 // ─── RENDER ──────────────────────────────────────────────
