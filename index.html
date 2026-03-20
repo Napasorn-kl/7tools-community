@@ -711,14 +711,18 @@ const WIZ_STEPS = [
   {
     icon:'🔗', color:'#2563eb', bg:'#eff6ff', border:'#93c5fd',
     title:'วาง URL แล้วเสร็จ!',
-    body:`<p class="text-gray-600 text-sm mb-4">วาง URL ที่ได้จาก Apps Script ด้านล่างนี้:</p>
-    <input id="sheets-url-input" type="url" class="fi mb-3" placeholder="https://script.google.com/macros/s/.../exec"
-      style="font-size:14px">
+    body:`<p class="text-gray-600 text-sm mb-3">วาง URL ที่ได้จาก Apps Script ด้านล่างนี้:</p>
+    <div class="bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl p-3 mb-3">
+      <p class="text-xs text-gray-400 mb-2">URL จะมีหน้าตาแบบนี้:</p>
+      <p class="text-xs font-mono text-blue-600 break-all">https://script.google.com/macros/s/<span class="text-orange-500">AKfycb...</span>/exec</p>
+    </div>
+    <input id="wiz-url-input" type="url" class="fi mb-3" placeholder="วาง URL ที่นี่..."
+      style="font-size:15px;font-weight:600">
     <button onclick="finishWizard()"
-      class="w-full py-4 rounded-2xl font-bold text-white text-base mb-3" style="background:#2563eb">
+      class="w-full py-4 rounded-2xl font-bold text-white text-base mb-2" style="background:#2563eb">
       ✅ เชื่อมต่อเลย!
     </button>
-    <button onclick="testSheetsConnection()" class="w-full py-3 rounded-2xl text-sm font-semibold text-blue-600 bg-blue-50 border-2 border-blue-200">
+    <button onclick="testWizUrl()" class="w-full py-3 rounded-2xl text-sm font-semibold text-blue-600 bg-blue-50 border-2 border-blue-200">
       🔍 ทดสอบก่อนบันทึก
     </button>`
   }
@@ -778,15 +782,39 @@ function renderWizStep() {
 function wizNext() { if(wizStep < WIZ_STEPS.length-1){ wizStep++; renderWizStep(); } }
 function wizBack() { if(wizStep > 0){ wizStep--; renderWizStep(); } }
 
+function getWizUrl() {
+  const wiz = document.getElementById('wiz-url-input');
+  return wiz ? wiz.value.trim() : '';
+}
+
 async function finishWizard() {
-  const url = document.getElementById('sheets-url-input').value.trim();
-  if (!url) { toast('กรุณาวาง URL ก่อน','red'); return; }
+  const url = getWizUrl();
+  if (!url) { toast('กรุณาวาง URL ก่อน','red'); document.getElementById('wiz-url-input')?.focus(); return; }
   if (!url.startsWith('https://script.google.com')) {
-    toast('URL ไม่ถูกต้อง ต้องเริ่มด้วย https://script.google.com','red'); return;
+    toast('URL ไม่ถูกต้อง — ต้องขึ้นต้นด้วย https://script.google.com','red'); return;
   }
-  setSheetsURL(url); syncStatus='connected';
+  setSheetsURL(url);
+  // sync to connected-state input
+  const inp = document.getElementById('sheets-url-input');
+  if (inp) inp.value = url;
+  syncStatus='connected';
   updateStatusUI(); showConnected(); renderSettingsBanner();
   toast('เชื่อมต่อ Google Sheets สำเร็จ 🎉','green');
+}
+
+async function testWizUrl() {
+  const url = getWizUrl();
+  if (!url) { toast('กรุณาวาง URL ก่อน','red'); document.getElementById('wiz-url-input')?.focus(); return; }
+  toast('กำลังทดสอบ...','blue');
+  const ok = await testConnection(url);
+  if (ok) {
+    setSheetsURL(url); syncStatus='connected';
+    toast('เชื่อมต่อสำเร็จ 🎉 กด "เชื่อมต่อเลย!" ได้เลย','green');
+  } else {
+    syncStatus='error';
+    toast('เชื่อมต่อล้มเหลว — ตรวจสอบ URL อีกครั้ง','red');
+  }
+  updateStatusUI();
 }
 
 function openSettings() {
