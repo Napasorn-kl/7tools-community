@@ -138,7 +138,8 @@ details > summary::-webkit-details-marker { display:none; }
   <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-sm" id="top-logo">7</div>
   <div class="font-bold text-gray-800 text-sm flex-1" id="top-title">เครื่องมือ 7 ชิ้น</div>
   <div id="top-status" class="mr-1"></div>
-  <button onclick="openSettings()" class="w-9 h-9 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 text-lg">⚙️</button>
+  <div id="visitor-badge" class="hidden px-2 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">📡 กำลังส่งข้อมูล</div>
+  <button id="settings-gear-btn" onclick="openSettings()" class="w-9 h-9 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 text-lg">⚙️</button>
 </div>
 
 <!-- ═══ MAIN CONTENT ═══ -->
@@ -151,7 +152,7 @@ details > summary::-webkit-details-marker { display:none; }
   <button class="bnav-btn active" id="bn-home" onclick="nav('home')"><span class="ico">🏠</span><span>หน้าหลัก</span></button>
   <button class="bnav-btn" id="bn-tools" onclick="openSheet()"><span class="ico">🔧</span><span>เครื่องมือ</span></button>
   <button class="bnav-btn" id="bn-data" onclick="nav('data')"><span class="ico">📊</span><span>ข้อมูล</span></button>
-  <button class="bnav-btn" onclick="openSettings()"><span class="ico">⚙️</span><span>ตั้งค่า</span></button>
+  <button class="bnav-btn" id="settings-bnav-btn" onclick="openSettings()"><span class="ico">⚙️</span><span>ตั้งค่า</span></button>
 </nav>
 
 <!-- ═══ TOOL SHEET ═══ -->
@@ -199,6 +200,9 @@ details > summary::-webkit-details-marker { display:none; }
           <button onclick="testSheetsConnection()" class="flex-1 bg-blue-50 text-blue-700 font-semibold py-3 rounded-xl text-sm border-2 border-blue-200">🔍 ทดสอบ</button>
           <button onclick="saveSheetsURL()" class="flex-1 bg-blue-600 text-white font-semibold py-3 rounded-xl text-sm">💾 บันทึก</button>
         </div>
+        <!-- Share URL box -->
+        <div id="share-url-box" class="mb-4"></div>
+
         <button onclick="clearSheetsURL()" class="w-full py-3 rounded-xl text-sm text-red-400 border border-red-100 font-semibold mb-4">
           🗑️ ยกเลิกการเชื่อมต่อ
         </button>
@@ -335,8 +339,37 @@ const STORE = {
 const SHEETS_URL_KEY = 'gs_url';
 let syncStatus = 'local'; // 'local' | 'connected' | 'syncing' | 'error'
 
-function getSheetsURL() { return localStorage.getItem(SHEETS_URL_KEY)||''; }
+// Visitor mode: URL has ?sheet=... param → auto-config, no setup needed
+const _urlSheetParam = new URLSearchParams(window.location.search).get('sheet');
+const isVisitorMode  = !!_urlSheetParam;
+
+function getSheetsURL() {
+  // URL param takes precedence (visitor/shared mode)
+  if (_urlSheetParam) return decodeURIComponent(_urlSheetParam);
+  return localStorage.getItem(SHEETS_URL_KEY)||'';
+}
 function setSheetsURL(url) { localStorage.setItem(SHEETS_URL_KEY, url); }
+
+function getShareURL() {
+  const url = getSheetsURL();
+  if (!url) return '';
+  const base = window.location.origin + window.location.pathname;
+  return base + '?sheet=' + encodeURIComponent(url);
+}
+
+function copyShareURL() {
+  const u = getShareURL();
+  if (!u) { toast('ยังไม่ได้เชื่อมต่อ Sheets','red'); return; }
+  navigator.clipboard.writeText(u).then(()=>{
+    toast('คัดลอก URL สำเร็จ 📋','green');
+  }).catch(()=>{
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = u; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    toast('คัดลอก URL สำเร็จ 📋','green');
+  });
+}
 
 async function pushToSheets(toolKey, record) {
   const url = getSheetsURL(); if (!url) return;
@@ -717,9 +750,9 @@ const WIZ_STEPS = [
       <p class="text-xs text-gray-400 mb-2">URL จะมีหน้าตาแบบนี้:</p>
       <p class="text-xs font-mono text-blue-600 break-all">https://script.google.com/macros/s/<span class="text-orange-500">AKfycb...</span>/exec</p>
     </div>
-    <input id="wiz-url-input" type="url" class="fi mb-3" placeholder="วาง URL ที่นี่..."
+    <input id="wiz-url-input" type="text" inputmode="url" class="fi mb-3" placeholder="วาง URL ที่นี่..."
       style="font-size:15px;font-weight:600"
-      oninput="wizUrlVal=this.value" onpaste="setTimeout(()=>{wizUrlVal=this.value},50)">
+      oninput="wizUrlVal=this.value.trim()" onchange="wizUrlVal=this.value.trim()" onpaste="setTimeout(()=>{wizUrlVal=this.value.trim();document.getElementById('wiz-url-input').style.borderColor=wizUrlVal?'#22c55e':'';},80)">
     <button onclick="finishWizard()"
       class="w-full py-4 rounded-2xl font-bold text-white text-base mb-2" style="background:#2563eb">
       ✅ เชื่อมต่อเลย!
@@ -742,6 +775,23 @@ function showConnected() {
   const url = getSheetsURL();
   const inp = document.getElementById('sheets-url-input');
   if (inp) inp.value = url;
+  // Render share URL section
+  const shareBox = document.getElementById('share-url-box');
+  if (shareBox) {
+    const shareUrl = getShareURL();
+    shareBox.innerHTML = `
+      <div class="rounded-2xl p-4 bg-blue-50 border-2 border-blue-200">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-lg">🔗</span>
+          <div class="font-bold text-blue-800 text-sm">URL สำหรับแชร์ให้ผู้อื่นกรอกข้อมูล</div>
+        </div>
+        <p class="text-xs text-blue-600 mb-3">คนที่เปิด URL นี้จะส่งข้อมูลเข้า Google Sheet ของคุณโดยอัตโนมัติ — ไม่ต้องตั้งค่าอะไรเพิ่ม</p>
+        <div class="bg-white border border-blue-200 rounded-xl p-3 mb-3 font-mono text-xs text-gray-500 break-all select-all">${shareUrl}</div>
+        <button onclick="copyShareURL()" class="w-full py-3 rounded-xl font-bold text-white text-sm" style="background:#2563eb">
+          📋 คัดลอก URL สำหรับแชร์
+        </button>
+      </div>`;
+  }
   renderSettingsBanner();
 }
 
@@ -1221,7 +1271,21 @@ function toast(msg,type){
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
 
 // ─── INIT ────────────────────────────────────────────────
-if(getSheetsURL()) syncStatus='connected';
+// If opened via shared URL, auto-save sheet URL (visitor mode)
+if (_urlSheetParam) {
+  const decoded = decodeURIComponent(_urlSheetParam);
+  setSheetsURL(decoded); // persist so pushToSheets works
+  syncStatus = 'connected';
+  // Hide settings UI — visitor doesn't need to configure anything
+  document.getElementById('settings-gear-btn').style.display  = 'none';
+  document.getElementById('settings-bnav-btn').style.display  = 'none';
+  document.getElementById('visitor-badge').classList.remove('hidden');
+  // Also hide sidebar settings link
+  const sideLink = document.querySelector('.snav[onclick*="openSettings"]');
+  if (sideLink) sideLink.style.display = 'none';
+} else {
+  if(getSheetsURL()) syncStatus='connected';
+}
 refreshCounts(); updateNav(); renderPage();
 </script>
 </body>
