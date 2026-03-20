@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>เครื่องมือ 7 ชิ้น</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { font-family:'Sarabun',sans-serif; -webkit-tap-highlight-color:transparent; }
+.fade-in { animation:fadeIn .22s ease; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+.slide-up { animation:slideUp .28s ease; }
+@keyframes slideUp { from{transform:translateY(100%);opacity:0} to{transform:translateY(0);opacity:1} }
+
+.chip { cursor:pointer; border:2px solid #e2e8f0; border-radius:999px; padding:8px 16px; font-size:14px; font-weight:500; transition:all .15s; background:#fff; color:#475569; min-height:40px; display:inline-flex; align-items:center; white-space:nowrap; }
+.chip:active { transform:scale(.96); }
+.chip.selected { border-color:var(--cc,#2563eb); background:var(--cb,#eff6ff); color:var(--cc,#1d4ed8); font-weight:700; }
+
+.fi { width:100%; border:2px solid #e2e8f0; border-radius:14px; padding:14px 16px; font-size:16px; transition:border-color .15s; background:#fff; line-height:1.5; -webkit-appearance:none; appearance:none; }
+.fi:focus { border-color:#3b82f6; outline:none; box-shadow:0 0 0 3px rgba(59,130,246,.12); }
+textarea.fi { resize:none; }
+select.fi { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 16px center; padding-right:40px; }
+
+.card { background:#fff; border:1.5px solid #e8edf3; border-radius:18px; padding:20px; margin-bottom:14px; }
+
+/* Bottom Nav */
+#bot-nav { position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1.5px solid #e8edf3; display:flex; z-index:100; padding-bottom:env(safe-area-inset-bottom); }
+.bnav-btn { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:10px 4px 8px; cursor:pointer; transition:all .15s; color:#94a3b8; font-size:10px; font-weight:600; gap:2px; min-height:56px; }
+.bnav-btn span.ico { font-size:22px; transition:.15s; }
+.bnav-btn.active { color:#1d4ed8; }
+.bnav-btn.active span.ico { transform:scale(1.1); }
+.bnav-btn:active { background:#f1f5f9; }
+
+/* Top bar */
+#top-bar { position:sticky; top:0; z-index:90; background:#fff; border-bottom:1.5px solid #e8edf3; padding:0 12px; height:56px; display:flex; align-items:center; gap:8px; }
+
+/* Sheets status pill */
+.status-pill { font-size:11px; font-weight:700; padding:3px 10px; border-radius:999px; display:inline-flex; align-items:center; gap:4px; }
+.status-pill.connected { background:#dcfce7; color:#166534; }
+.status-pill.local { background:#fef9c3; color:#854d0e; }
+.status-pill.syncing { background:#dbeafe; color:#1e40af; }
+
+/* Bottom Sheet */
+#sheet-overlay { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:200; display:none; }
+#sheet { position:fixed; bottom:0; left:0; right:0; background:#fff; border-radius:24px 24px 0 0; z-index:201; max-height:85vh; overflow-y:auto; padding-bottom:calc(16px + env(safe-area-inset-bottom)); display:none; }
+#sheet.open, #sheet-overlay.open { display:block; }
+.sheet-pill { width:40px; height:4px; background:#e2e8f0; border-radius:2px; margin:10px auto 16px; }
+
+/* Settings Modal */
+#settings-modal { position:fixed; inset:0; z-index:300; display:none; align-items:flex-end; }
+#settings-modal.open { display:flex; }
+#settings-backdrop { position:absolute; inset:0; background:rgba(0,0,0,.5); }
+#settings-panel { position:relative; width:100%; background:#fff; border-radius:24px 24px 0 0; max-height:92vh; overflow-y:auto; padding:0 0 calc(24px + env(safe-area-inset-bottom)); }
+@media (min-width:768px) {
+  #settings-modal { align-items:center; justify-content:center; }
+  #settings-panel { max-width:560px; border-radius:24px; max-height:88vh; }
+}
+
+/* Code block */
+.code-block { background:#0f172a; color:#e2e8f0; border-radius:14px; padding:16px; font-family:monospace; font-size:12px; line-height:1.6; overflow-x:auto; white-space:pre; }
+
+/* Desktop */
+@media (min-width:768px) {
+  #bot-nav { display:none !important; }
+  #top-bar { display:none !important; }
+  #sidebar { display:flex !important; }
+  #main-wrap { margin-left:240px; padding-bottom:24px; }
+  .page-inner { max-width:640px; }
+}
+@media (max-width:767px) {
+  #sidebar { display:none !important; }
+  #main-wrap { padding-bottom:80px; }
+  .page-inner { max-width:100%; }
+}
+
+#sidebar { width:240px; position:fixed; top:0; bottom:0; left:0; flex-direction:column; background:#fff; border-right:1.5px solid #e8edf3; z-index:50; overflow-y:auto; }
+.snav { width:100%; text-align:left; padding:10px 12px; border-radius:10px; font-size:14px; font-weight:500; display:flex; align-items:center; gap:10px; transition:all .15s; color:#475569; cursor:pointer; }
+.snav:hover { background:#f1f5f9; }
+.snav.active { background:#1e40af; color:#fff; }
+.snav .cnt { margin-left:auto; font-size:11px; background:rgba(0,0,0,.08); padding:1px 7px; border-radius:999px; }
+.snav.active .cnt { background:rgba(255,255,255,.25); color:#fff; }
+
+.gps-btn { background:#f0fdf4; border:2px solid #86efac; color:#16a34a; padding:10px 14px; border-radius:12px; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; min-height:48px; transition:all .15s; white-space:nowrap; }
+.gps-btn:active { background:#dcfce7; }
+.rec-card { border:1.5px solid #f1f5f9; border-radius:14px; padding:14px 16px; margin-bottom:8px; background:#fafafa; display:flex; align-items:flex-start; gap:12px; }
+.rec-card:active { background:#f0f9ff; border-color:#bfdbfe; }
+
+.toast { position:fixed; bottom:84px; left:50%; transform:translateX(-50%); padding:12px 22px; border-radius:14px; font-weight:700; font-size:14px; z-index:9999; box-shadow:0 8px 24px rgba(0,0,0,.18); animation:toastIn .25s ease; white-space:nowrap; }
+@keyframes toastIn { from{opacity:0;transform:translateX(-50%) translateY(8px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+@media (min-width:768px) { .toast { bottom:24px; } }
+
+.ticon { width:52px; height:52px; border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:26px; flex-shrink:0; }
+.submit-btn { width:100%; padding:17px; border-radius:18px; font-weight:700; font-size:16px; border:none; cursor:pointer; transition:all .15s; box-shadow:0 4px 12px rgba(0,0,0,.12); }
+.submit-btn:active { transform:scale(.98); }
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:2px; }
+details > summary { cursor:pointer; user-select:none; list-style:none; }
+details > summary::-webkit-details-marker { display:none; }
+
+/* Step indicator */
+.step-num { width:28px; height:28px; border-radius:50%; background:#1e40af; color:#fff; font-weight:700; font-size:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+</style>
+</head>
+<body class="bg-slate-100 min-h-screen">
+
+<!-- ═══ DESKTOP SIDEBAR ═══ -->
+<aside id="sidebar">
+  <div class="px-4 py-4 border-b border-slate-100">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold">7</div>
+      <div>
+        <div class="font-bold text-gray-800 text-sm">เครื่องมือ 7 ชิ้น</div>
+        <div id="sidebar-status" class="mt-0.5"></div>
+      </div>
+    </div>
+  </div>
+  <nav class="p-3 space-y-0.5">
+    <button onclick="nav('home')" id="sn-home" class="snav active"><span>🏠</span>หน้าหลัก</button>
+    <button onclick="nav('data')" id="sn-data" class="snav"><span>📊</span>ข้อมูลทั้งหมด</button>
+    <div class="pt-2 pb-1 px-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">เครื่องมือ</div>
+    <button onclick="nav('t1')" id="sn-t1" class="snav"><span>🗺️</span>แผนที่เดินดิน<span class="cnt" id="cnt-t1">0</span></button>
+    <button onclick="nav('t2')" id="sn-t2" class="snav"><span>👨‍👩‍👧</span>ผังเครือญาติ<span class="cnt" id="cnt-t2">0</span></button>
+    <button onclick="nav('t3')" id="sn-t3" class="snav"><span>🏛️</span>โครงสร้างองค์กร<span class="cnt" id="cnt-t3">0</span></button>
+    <button onclick="nav('t4')" id="sn-t4" class="snav"><span>💡</span>ผังความคิด<span class="cnt" id="cnt-t4">0</span></button>
+    <button onclick="nav('t5')" id="sn-t5" class="snav"><span>📅</span>ปฏิทินชุมชน<span class="cnt" id="cnt-t5">0</span></button>
+    <button onclick="nav('t6')" id="sn-t6" class="snav"><span>📜</span>ประวัติศาสตร์<span class="cnt" id="cnt-t6">0</span></button>
+    <button onclick="nav('t7')" id="sn-t7" class="snav"><span>👤</span>ประวัติบุคคล<span class="cnt" id="cnt-t7">0</span></button>
+    <div class="pt-3 border-t border-gray-100 mt-3">
+      <button onclick="openSettings()" class="snav text-gray-400 hover:text-gray-600"><span>⚙️</span>ตั้งค่า Google Sheets</button>
+    </div>
+  </nav>
+</aside>
+
+<!-- ═══ MOBILE TOP BAR ═══ -->
+<div id="top-bar">
+  <button id="top-back" onclick="goBack()" class="w-10 h-10 flex items-center justify-center rounded-full text-gray-500 text-xl hidden">‹</button>
+  <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-sm" id="top-logo">7</div>
+  <div class="font-bold text-gray-800 text-sm flex-1" id="top-title">เครื่องมือ 7 ชิ้น</div>
+  <div id="top-status" class="mr-1"></div>
+  <button onclick="openSettings()" class="w-9 h-9 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 text-lg">⚙️</button>
+</div>
+
+<!-- ═══ MAIN CONTENT ═══ -->
+<div id="main-wrap" class="min-h-screen">
+  <div class="page-inner mx-auto px-4 pt-4 pb-4" id="page"></div>
+</div>
+
+<!-- ═══ MOBILE BOTTOM NAV ═══ -->
+<nav id="bot-nav">
+  <button class="bnav-btn active" id="bn-home" onclick="nav('home')"><span class="ico">🏠</span><span>หน้าหลัก</span></button>
+  <button class="bnav-btn" id="bn-tools" onclick="openSheet()"><span class="ico">🔧</span><span>เครื่องมือ</span></button>
+  <button class="bnav-btn" id="bn-data" onclick="nav('data')"><span class="ico">📊</span><span>ข้อมูล</span></button>
+  <button class="bnav-btn" onclick="openSettings()"><span class="ico">⚙️</span><span>ตั้งค่า</span></button>
+</nav>
+
+<!-- ═══ TOOL SHEET ═══ -->
+<div id="sheet-overlay" onclick="closeSheet()"></div>
+<div id="sheet" class="slide-up">
+  <div class="sheet-pill"></div>
+  <div class="px-5 pb-2 text-base font-bold text-gray-800 mb-2">เลือกเครื่องมือ</div>
+  <div class="px-4 pb-4 grid grid-cols-1 gap-2" id="sheet-tools"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SETTINGS MODAL
+═══════════════════════════════════════════════════════ -->
+<div id="settings-modal">
+  <div id="settings-backdrop" onclick="closeSettings()"></div>
+  <div id="settings-panel" class="slide-up">
+    <div class="sheet-pill"></div>
+    <div class="px-5 pb-4">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h2 class="text-lg font-bold text-gray-800">เชื่อมต่อ Google Sheets</h2>
+          <p class="text-sm text-gray-400 mt-0.5">สำรองข้อมูลบน Cloud ฟรี 100%</p>
+        </div>
+        <button onclick="closeSettings()" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 text-xl font-bold">×</button>
+      </div>
+
+      <!-- Status banner -->
+      <div id="settings-status-banner" class="rounded-2xl p-4 mb-5 hidden">
+        <div class="flex items-center gap-3">
+          <span id="banner-icon" class="text-2xl"></span>
+          <div>
+            <div id="banner-title" class="font-bold text-sm"></div>
+            <div id="banner-sub" class="text-xs mt-0.5"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- URL Input -->
+      <div class="mb-4">
+        <label class="block text-sm font-semibold text-gray-700 mb-2">Apps Script Web App URL</label>
+        <input id="sheets-url-input" type="url" class="fi" placeholder="https://script.google.com/macros/s/.../exec"
+          value="">
+        <p class="text-xs text-gray-400 mt-2">วาง URL ที่ได้จากการ Deploy Apps Script (ดูขั้นตอนด้านล่าง)</p>
+      </div>
+
+      <div class="flex gap-3 mb-6">
+        <button onclick="testSheetsConnection()" class="flex-1 bg-blue-50 text-blue-700 font-semibold py-3 rounded-xl text-sm border-2 border-blue-200">
+          🔍 ทดสอบการเชื่อมต่อ
+        </button>
+        <button onclick="saveSheetsURL()" class="flex-1 bg-blue-600 text-white font-semibold py-3 rounded-xl text-sm">
+          💾 บันทึก
+        </button>
+      </div>
+
+      <div class="border-t border-gray-100 pt-5">
+        <p class="text-sm font-bold text-gray-700 mb-4">📋 วิธีตั้งค่า (ทำครั้งเดียว)</p>
+
+        <!-- Steps -->
+        <div class="space-y-4">
+          <div class="flex gap-3">
+            <div class="step-num">1</div>
+            <div>
+              <p class="font-semibold text-sm text-gray-800">สร้าง Google Sheet ใหม่</p>
+              <a href="https://sheets.new" target="_blank" class="inline-block mt-1 text-xs text-blue-600 underline">คลิกที่นี่ → sheets.new</a>
+            </div>
+          </div>
+
+          <div class="flex gap-3">
+            <div class="step-num">2</div>
+            <div>
+              <p class="font-semibold text-sm text-gray-800">เปิด Apps Script</p>
+              <p class="text-xs text-gray-500 mt-0.5">เมนู <strong>Extensions</strong> → <strong>Apps Script</strong></p>
+            </div>
+          </div>
+
+          <div class="flex gap-3">
+            <div class="step-num">3</div>
+            <div class="flex-1">
+              <p class="font-semibold text-sm text-gray-800 mb-2">วาง Code นี้ใน editor</p>
+              <div class="relative">
+                <div class="code-block text-xs" id="gs-preview">// วาง code จากไฟล์ .claude/appscript.gs
+// หรือกดปุ่มด้านล่างเพื่อ copy</div>
+                <button onclick="copyGSCode()" class="absolute top-2 right-2 bg-white/10 hover:bg-white/20 text-white text-xs px-3 py-1.5 rounded-lg font-semibold transition-all" id="copy-gs-btn">
+                  📋 Copy
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex gap-3">
+            <div class="step-num">4</div>
+            <div>
+              <p class="font-semibold text-sm text-gray-800">Deploy เป็น Web App</p>
+              <div class="text-xs text-gray-500 mt-1 space-y-0.5">
+                <p>→ กด <strong>Deploy</strong> → <strong>New deployment</strong></p>
+                <p>→ Type: <strong>Web app</strong></p>
+                <p>→ Execute as: <strong>Me</strong></p>
+                <p>→ Who has access: <strong>Anyone</strong></p>
+                <p>→ กด <strong>Deploy</strong> → Copy URL</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex gap-3">
+            <div class="step-num">5</div>
+            <div>
+              <p class="font-semibold text-sm text-gray-800">วาง URL ด้านบน แล้วกด บันทึก</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Clear button -->
+        <button onclick="clearSheetsURL()" class="mt-5 w-full py-3 rounded-xl text-sm text-red-500 border-2 border-red-100 font-semibold">
+          🗑️ ยกเลิกการเชื่อมต่อ
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════════════════ -->
+<script>
+// ─── APPS SCRIPT CODE (embedded for copy) ────────────────
+const GS_CODE = `// ══════════════════════════════════════════
+//  เครื่องมือ 7 ชิ้น — Google Apps Script
+//  Deploy: Execute as "Me" | Anyone access
+// ══════════════════════════════════════════
+const SUMMARY_SHEET = '_สรุป';
+function getSpreadsheet(){return SpreadsheetApp.getActiveSpreadsheet();}
+
+function doPost(e){
+  try{
+    const {tool,record}=JSON.parse(e.postData.contents);
+    if(!tool||!record)return out({error:'missing tool or record'});
+    const ss=getSpreadsheet();
+    let sheet=ss.getSheetByName(tool);
+    if(!sheet){sheet=ss.insertSheet(tool);}
+    const keys=Object.keys(record);
+    if(sheet.getLastRow()===0){
+      sheet.appendRow(keys);
+      sheet.getRange(1,1,1,keys.length).setFontWeight('bold').setBackground('#1e40af').setFontColor('#fff');
+      sheet.setFrozenRows(1);sheet.setColumnWidths(1,keys.length,160);
+    }else{
+      const ex=sheet.getRange(1,1,1,sheet.getLastColumn()).getValues()[0];
+      keys.forEach(k=>{if(!ex.includes(k)){const c=sheet.getLastColumn()+1;sheet.getRange(1,c).setValue(k).setFontWeight('bold').setBackground('#1e40af').setFontColor('#fff');sheet.setColumnWidth(c,160);ex.push(k);}});
+    }
+    const hdrs=sheet.getRange(1,1,1,sheet.getLastColumn()).getValues()[0];
+    sheet.appendRow(hdrs.map(h=>record[h]!==undefined?record[h]:''));
+    updateSummary(ss);
+    return out({success:true,rowCount:sheet.getLastRow()-1});
+  }catch(err){return out({error:err.toString()});}
+}
+
+function doGet(e){
+  try{
+    const tool=e.parameter.tool,allP=e.parameter.all,ss=getSpreadsheet();
+    if(tool){
+      const sheet=ss.getSheetByName(tool);
+      if(!sheet||sheet.getLastRow()<2)return out({data:[],tool});
+      const vals=sheet.getDataRange().getValues(),hdrs=vals[0];
+      return out({data:vals.slice(1).map(r=>{const o={};hdrs.forEach((h,i)=>o[h]=r[i]);return o;}),tool});
+    }
+    if(allP){
+      const result={};
+      ss.getSheets().forEach(s=>{
+        const name=s.getName();if(name.startsWith('_'))return;
+        if(s.getLastRow()<2){result[name]=[];return;}
+        const vals=s.getDataRange().getValues(),hdrs=vals[0];
+        result[name]=vals.slice(1).map(r=>{const o={};hdrs.forEach((h,i)=>o[h]=r[i]);return o;});
+      });
+      return out({all:result});
+    }
+    const sheets=ss.getSheets().filter(s=>!s.getName().startsWith('_')).map(s=>({name:s.getName(),count:Math.max(0,s.getLastRow()-1)}));
+    return out({sheets,ok:true});
+  }catch(err){return out({error:err.toString()});}
+}
+
+function out(data){return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);}
+function updateSummary(ss){
+  try{
+    let s=ss.getSheetByName(SUMMARY_SHEET);if(!s)s=ss.insertSheet(SUMMARY_SHEET,0);
+    s.clearContents();s.appendRow(['เครื่องมือ','จำนวนรายการ','อัปเดตล่าสุด']);
+    s.getRange(1,1,1,3).setFontWeight('bold').setBackground('#0f172a').setFontColor('#fff');
+    ss.getSheets().forEach(sh=>{if(!sh.getName().startsWith('_'))s.appendRow([sh.getName(),Math.max(0,sh.getLastRow()-1),new Date().toLocaleString('th-TH')]);});
+    s.setColumnWidths(1,3,200);
+  }catch(e){}
+}`;
+
+// ─── STORAGE ─────────────────────────────────────────────
+const STORE = {
+  get: k => { try { return JSON.parse(localStorage.getItem(k)||'[]'); } catch { return []; } },
+  set: (k,v) => localStorage.setItem(k, JSON.stringify(v)),
+  add(key, obj) {
+    const arr = this.get(key);
+    obj._id   = Date.now()+'';
+    obj._date = new Date().toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
+    arr.unshift(obj);
+    this.set(key, arr);
+    return obj;
+  },
+  del(key, id) { this.set(key, this.get(key).filter(r=>r._id!==id)); },
+  merge(key, cloudRows) {
+    // Merge cloud rows into local, keeping local additions not yet in cloud
+    const local  = this.get(key);
+    const cloudIds = new Set(cloudRows.map(r=>r._id).filter(Boolean));
+    // Add local-only records (not in cloud) + all cloud records
+    const localOnly = local.filter(r => r._id && !cloudIds.has(r._id));
+    const merged = [...cloudRows, ...localOnly]
+      .sort((a,b) => (b._id||0) > (a._id||0) ? 1 : -1);
+    this.set(key, merged);
+    return merged;
+  }
+};
+
+// ─── GOOGLE SHEETS SYNC ──────────────────────────────────
+const SHEETS_URL_KEY = 'gs_url';
+let syncStatus = 'local'; // 'local' | 'connected' | 'syncing' | 'error'
+
+function getSheetsURL() { return localStorage.getItem(SHEETS_URL_KEY)||''; }
+function setSheetsURL(url) { localStorage.setItem(SHEETS_URL_KEY, url); }
+
+async function pushToSheets(toolKey, record) {
+  const url = getSheetsURL(); if (!url) return;
+  try {
+    await fetch(url, {
+      method: 'POST',
+      mode:   'no-cors',          // ← bypass CORS for POST; data IS written, response is opaque
+      body:   JSON.stringify({ tool: toolKey, record })
+    });
+  } catch(e) { console.warn('Sheets push failed', e); }
+}
+
+async function pullFromSheets(toolKey) {
+  const url = getSheetsURL(); if (!url) return null;
+  try {
+    const res  = await fetch(`${url}?tool=${encodeURIComponent(toolKey)}`);
+    const json = await res.json();
+    return json.data || null;
+  } catch(e) { return null; }
+}
+
+async function pullAllFromSheets() {
+  const url = getSheetsURL(); if (!url) return null;
+  try {
+    const res  = await fetch(`${url}?all=1`);
+    const json = await res.json();
+    return json.all || null;
+  } catch(e) { return null; }
+}
+
+async function testConnection(url) {
+  try {
+    const res  = await fetch(`${url}?ping=1`, { signal: AbortSignal.timeout(8000) });
+    const json = await res.json();
+    return json.ok || json.sheets !== undefined || !!json.all || true; // any valid JSON = ok
+  } catch(e) { return false; }
+}
+
+function updateStatusUI() {
+  const url = getSheetsURL();
+  const map = {
+    connected: { pill: 'connected', dot: '🟢', label: 'Google Sheets', sub: 'ซิงค์แล้ว' },
+    syncing:   { pill: 'syncing',   dot: '🔄', label: 'กำลังซิงค์...',  sub: '' },
+    error:     { pill: 'local',     dot: '🔴', label: 'เชื่อมต่อล้มเหลว', sub: 'เช็ก URL' },
+    local:     { pill: 'local',     dot: '💾', label: 'Local only',    sub: 'ยังไม่ได้ตั้งค่า' }
+  };
+  const s = map[url ? syncStatus : 'local'];
+
+  // sidebar
+  const sb = document.getElementById('sidebar-status');
+  if (sb) sb.innerHTML = `<span class="status-pill ${s.pill}">${s.dot} ${s.label}</span>`;
+
+  // top bar (mobile)
+  const ts = document.getElementById('top-status');
+  if (ts) ts.innerHTML = url ? `<span class="status-pill ${s.pill}">${s.dot}</span>` : '';
+}
+
+// ─── TOOLS CONFIG ────────────────────────────────────────
+const TOOLS = [
+  {
+    id:'t1',key:'map',icon:'🗺️',color:'blue',name:'แผนที่เดินดิน',sub:'Geo-Social Mapping',
+    desc:'สถานที่สำคัญและทรัพยากรในชุมชน',
+    pKey:'place_name',pLabel:'ชื่อสถานที่',pHint:'เช่น วัดบ้านท่า, โรงเรียน',
+    tKey:'place_type',tLabel:'ประเภทสถานที่',
+    types:['บ้านเรือน','วัด/ศาสนา','โรงเรียน','ตลาด/ร้านค้า','แหล่งน้ำ','พื้นที่เกษตร','สาธารณสุข','อื่นๆ'],
+    main:[{k:'gps',label:'พิกัด GPS',type:'gps'},{k:'desc',label:'คำอธิบาย / ความสำคัญ',type:'textarea',hint:'ลักษณะ บทบาท หรือเรื่องราว'}],
+    extra:[{k:'owner',label:'เจ้าของ / ผู้ดูแล',type:'text'},{k:'informant',label:'ผู้ให้ข้อมูล',type:'text',remember:true},{k:'survey_date',label:'วันที่สำรวจ',type:'date'}]
+  },
+  {
+    id:'t2',key:'kin',icon:'👨‍👩‍👧',color:'green',name:'ผังเครือญาติ',sub:'Genogram',
+    desc:'ความสัมพันธ์ทางครอบครัวในชุมชน',
+    pKey:'name',pLabel:'ชื่อ-นามสกุล',pHint:'ชื่อบุคคลที่ต้องการบันทึก',
+    tKey:'relation',tLabel:'ความสัมพันธ์',
+    types:['ตนเอง','พ่อ/แม่','สามี/ภรรยา','ลูก','พี่/น้อง','ปู่/ย่า/ตา/ยาย','ลุง/ป้า/น้า/อา','หลาน','พ่อตา/แม่ยาย','อื่นๆ'],
+    main:[{k:'gender',label:'เพศ',type:'chip2',opts:['ชาย','หญิง','อื่นๆ']},{k:'age',label:'อายุ (ปี)',type:'number',inline:true},{k:'birth_year',label:'ปีเกิด พ.ศ.',type:'text',placeholder:'เช่น 2510',inline:true},{k:'status',label:'สถานะ',type:'chip2',opts:['มีชีวิต','เสียชีวิตแล้ว','ไม่ทราบ']},{k:'occupation',label:'อาชีพ',type:'text'}],
+    extra:[{k:'education',label:'การศึกษา',type:'select',opts:['ประถมศึกษา','มัธยมศึกษา','อาชีวศึกษา','ปริญญาตรี','สูงกว่าปริญญาตรี','ไม่ได้เรียน','ไม่ทราบ']},{k:'address',label:'ที่อยู่ปัจจุบัน',type:'text'},{k:'note',label:'หมายเหตุ',type:'textarea'},{k:'informant',label:'ผู้ให้ข้อมูล',type:'text',remember:true}]
+  },
+  {
+    id:'t3',key:'org',icon:'🏛️',color:'purple',name:'โครงสร้างองค์กร',sub:'Community Organization',
+    desc:'กลุ่มและองค์กรในชุมชน',
+    pKey:'org_name',pLabel:'ชื่อองค์กร / กลุ่ม',pHint:'เช่น กลุ่มแม่บ้าน, ชมรมผู้สูงอายุ',
+    tKey:'org_type',tLabel:'ประเภทองค์กร',
+    types:['อปท./รัฐ','กลุ่มเกษตรกร','กลุ่มออมทรัพย์','ศาสนา/วัฒนธรรม','กลุ่มสตรี','กลุ่มเยาวชน','กลุ่มผู้สูงอายุ','กลุ่มอาชีพ','สหกรณ์','อื่นๆ'],
+    main:[{k:'leader',label:'ประธาน / ผู้นำ',type:'text'},{k:'member_count',label:'สมาชิก (คน)',type:'number',inline:true},{k:'founded_year',label:'ปีก่อตั้ง พ.ศ.',type:'text',placeholder:'เช่น 2540',inline:true},{k:'objective',label:'วัตถุประสงค์หลัก',type:'textarea',hint:'ทำขึ้นเพื่ออะไร'}],
+    extra:[{k:'activities',label:'กิจกรรมหลัก',type:'textarea'},{k:'funding',label:'แหล่งทุน',type:'select',opts:['งบรัฐ','เงินสมาชิก','บริจาค','รายได้กลุ่ม','หลายแหล่ง','ไม่มี','ไม่ทราบ']},{k:'status_org',label:'สถานะ',type:'chip2',opts:['ดำเนินการอยู่','หยุดชั่วคราว','ยุบแล้ว']},{k:'informant',label:'ผู้ให้ข้อมูล',type:'text',remember:true}]
+  },
+  {
+    id:'t4',key:'mind',icon:'💡',color:'amber',name:'ผังความคิดชุมชน',sub:'Mind Map',
+    desc:'ประเด็น ความรู้ และภูมิปัญญาชุมชน',
+    pKey:'topic',pLabel:'หัวข้อหลัก',pHint:'เช่น ทุนชุมชน, ปัญหาน้ำ',
+    tKey:'branch',tLabel:'สาขาหลัก (Branch)',
+    types:['ทรัพยากร','ทุนทางสังคม','ปัญหา/ความต้องการ','ภูมิปัญญา','ความเชื่อ/ศาสนา','เศรษฐกิจ','สุขภาพ','อื่นๆ'],
+    main:[{k:'sub_branch',label:'หัวข้อย่อย',type:'text',hint:'ประเด็นย่อยภายใต้สาขาหลัก'},{k:'detail',label:'รายละเอียด',type:'textarea',hint:'อธิบายให้ชัดเจน'}],
+    extra:[{k:'related',label:'เชื่อมโยงกับ',type:'text',hint:'หัวข้ออื่นที่สัมพันธ์กัน'},{k:'source_type',label:'แหล่งที่มา',type:'chip2',opts:['สัมภาษณ์','สังเกตการณ์','เอกสาร','สนทนากลุ่ม','ความรู้ท้องถิ่น']},{k:'informant',label:'ผู้ให้ข้อมูล',type:'text',remember:true}]
+  },
+  {
+    id:'t5',key:'cal',icon:'📅',color:'orange',name:'ปฏิทินชุมชน',sub:'Community Calendar',
+    desc:'กิจกรรม ประเพณี และวงจรชีวิตรายปี',
+    pKey:'event_name',pLabel:'ชื่อกิจกรรม / ประเพณี',pHint:'เช่น ลอยกระทง, ฤดูทำนา',
+    tKey:'event_type',tLabel:'ประเภทกิจกรรม',
+    types:['ศาสนา/พิธีกรรม','ประเพณีท้องถิ่น','เกษตรกรรม','การค้า/เศรษฐกิจ','สังคม/ชุมชน','การศึกษา','สาธารณสุข','อื่นๆ'],
+    main:[{k:'month',label:'เดือนที่จัด',type:'monthchip'},{k:'participants',label:'ผู้เข้าร่วม',type:'chip2',opts:['ทั้งชุมชน','เฉพาะกลุ่ม','เยาวชน','ผู้สูงอายุ','ผู้หญิง','ทุกเพศวัย']},{k:'significance',label:'ความสำคัญ / ความหมาย',type:'textarea',hint:'มีความหมายต่อชุมชนอย่างไร?'}],
+    extra:[{k:'date_range',label:'ระยะเวลา',type:'text',hint:'เช่น 3 วัน, ตลอดเดือน'},{k:'related_resource',label:'ทรัพยากรที่ใช้',type:'text'},{k:'informant',label:'ผู้ให้ข้อมูล',type:'text',remember:true}]
+  },
+  {
+    id:'t6',key:'hist',icon:'📜',color:'red',name:'ประวัติศาสตร์ชุมชน',sub:'Community History',
+    desc:'เหตุการณ์สำคัญตามเส้นเวลา',
+    pKey:'event_title',pLabel:'ชื่อเหตุการณ์',pHint:'เช่น ก่อตั้งวัดแห่งแรก, น้ำท่วมใหญ่',
+    tKey:'event_type_h',tLabel:'ประเภทเหตุการณ์',
+    types:['การก่อตั้ง/ตั้งถิ่นฐาน','ภัยพิบัติ/วิกฤต','การพัฒนา','ศาสนา/วัฒนธรรม','เศรษฐกิจ','การเมือง','สังคม','อื่นๆ'],
+    main:[{k:'year_be',label:'ปี พ.ศ. (ประมาณ)',type:'text',placeholder:'เช่น 2500',hint:'ไม่ต้องแน่ชัด'},{k:'description_h',label:'รายละเอียดเหตุการณ์',type:'textarea',hint:'เกิดอะไรขึ้น? ใครเกี่ยวข้อง?'}],
+    extra:[{k:'impact',label:'ผลกระทบต่อชุมชน',type:'textarea'},{k:'source',label:'แหล่งข้อมูล / หลักฐาน',type:'text',hint:'คำบอกเล่า, เอกสาร'},{k:'reliability',label:'ความน่าเชื่อถือ',type:'chip2',opts:['สูง — มีหลักฐาน','ปานกลาง','ต่ำ — ได้จากผู้เดียว']},{k:'informant',label:'ผู้ให้ข้อมูล',type:'text',remember:true}]
+  },
+  {
+    id:'t7',key:'bio',icon:'👤',color:'pink',name:'ประวัติชีวิตบุคคล',sub:'Life History',
+    desc:'ประวัติและเหตุการณ์สำคัญในชีวิตบุคคล',
+    pKey:'full_name',pLabel:'ชื่อ-นามสกุล',pHint:'ชื่อบุคคลที่ต้องการบันทึก',
+    tKey:'community_role',tLabel:'บทบาทในชุมชน',
+    types:['ผู้นำชุมชน','ปราชญ์ชาวบ้าน','หมอพื้นบ้าน','ช่างฝีมือ','นักบวช/พระ','เกษตรกร','อาสาสมัคร','บุคคลทั่วไป'],
+    main:[{k:'gender_b',label:'เพศ',type:'chip2',opts:['ชาย','หญิง','อื่นๆ']},{k:'age_b',label:'อายุ (ปี)',type:'number',inline:true},{k:'birth_year_b',label:'ปีเกิด พ.ศ.',type:'text',placeholder:'เช่น 2490',inline:true},{k:'key_events',label:'เหตุการณ์สำคัญในชีวิต',type:'textarea',hint:'เหตุการณ์ที่มีผลต่อชีวิตและชุมชน'}],
+    extra:[{k:'birth_place',label:'สถานที่เกิด',type:'text'},{k:'occupation_h',label:'ประวัติการทำงาน',type:'textarea'},{k:'expertise',label:'ความรู้ / ความเชี่ยวชาญ',type:'textarea'},{k:'message',label:'ฝากถึงคนรุ่นหลัง',type:'textarea'},{k:'informant',label:'ผู้สัมภาษณ์',type:'text',remember:true}]
+  }
+];
+
+const MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+const CLR = {
+  blue:  {bg:'bg-blue-50',  bi:'bg-blue-100',  tx:'text-blue-700',  brd:'border-blue-200',  btn:'background:#2563eb',  tag:'bg-blue-100 text-blue-700',  chip:'--cc:#1d4ed8;--cb:#eff6ff'},
+  green: {bg:'bg-green-50', bi:'bg-green-100', tx:'text-green-700', brd:'border-green-200', btn:'background:#16a34a',  tag:'bg-green-100 text-green-700', chip:'--cc:#166534;--cb:#f0fdf4'},
+  purple:{bg:'bg-purple-50',bi:'bg-purple-100',tx:'text-purple-700',brd:'border-purple-200',btn:'background:#7c3aed',  tag:'bg-purple-100 text-purple-700',chip:'--cc:#6b21a8;--cb:#faf5ff'},
+  amber: {bg:'bg-amber-50', bi:'bg-amber-100', tx:'text-amber-700', brd:'border-amber-200', btn:'background:#d97706',  tag:'bg-amber-100 text-amber-700',  chip:'--cc:#92400e;--cb:#fffbeb'},
+  orange:{bg:'bg-orange-50',bi:'bg-orange-100',tx:'text-orange-700',brd:'border-orange-200',btn:'background:#ea580c',  tag:'bg-orange-100 text-orange-700',chip:'--cc:#9a3412;--cb:#fff7ed'},
+  red:   {bg:'bg-red-50',   bi:'bg-red-100',   tx:'text-red-700',   brd:'border-red-200',   btn:'background:#dc2626',  tag:'bg-red-100 text-red-700',    chip:'--cc:#991b1b;--cb:#fef2f2'},
+  pink:  {bg:'bg-pink-50',  bi:'bg-pink-100',  tx:'text-pink-700',  brd:'border-pink-200',  btn:'background:#db2777',  tag:'bg-pink-100 text-pink-700',   chip:'--cc:#9d174d;--cb:#fdf2f8'}
+};
+
+// ─── STATE ───────────────────────────────────────────────
+let curPage = 'home', prevPage = null, formState = {};
+
+// ─── NAV ─────────────────────────────────────────────────
+function nav(page) {
+  prevPage = curPage; curPage = page;
+  closeSheet(); closeSettings();
+  updateNav(); refreshCounts(); renderPage();
+}
+function goBack() { nav(prevPage||'home'); }
+
+function updateNav() {
+  document.querySelectorAll('.snav,.bnav-btn').forEach(b=>b.classList.remove('active'));
+  const sn = document.getElementById('sn-'+curPage);
+  if (sn) sn.classList.add('active');
+  if (curPage==='home') document.getElementById('bn-home')?.classList.add('active');
+  if (curPage==='data') document.getElementById('bn-data')?.classList.add('active');
+  if (TOOLS.find(t=>t.id===curPage)) document.getElementById('bn-tools')?.classList.add('active');
+
+  const back  = document.getElementById('top-back');
+  const logo  = document.getElementById('top-logo');
+  const title = document.getElementById('top-title');
+  const tool  = TOOLS.find(t=>t.id===curPage);
+  if (tool) {
+    back?.classList.remove('hidden'); logo?.classList.add('hidden');
+    if (title) title.textContent = tool.name;
+  } else {
+    back?.classList.add('hidden'); logo?.classList.remove('hidden');
+    if (title) title.textContent = curPage==='data'?'ข้อมูลทั้งหมด':'เครื่องมือ 7 ชิ้น';
+  }
+  updateStatusUI();
+}
+
+function refreshCounts() {
+  TOOLS.forEach(t=>{
+    const el=document.getElementById('cnt-'+t.id);
+    if(el) el.textContent=STORE.get(t.key).length;
+  });
+}
+
+// ─── SHEET (tool selector) ───────────────────────────────
+function openSheet() {
+  document.getElementById('sheet-tools').innerHTML = TOOLS.map(t=>{
+    const c=CLR[t.color], cnt=STORE.get(t.key).length;
+    return `<button onclick="nav('${t.id}')" class="flex items-center gap-3 p-4 rounded-2xl ${c.bg} border ${c.brd} text-left transition-transform active:scale-98">
+      <div class="ticon ${c.bi}">${t.icon}</div>
+      <div class="flex-1">
+        <div class="font-bold text-gray-800 text-sm">${t.name}</div>
+        <div class="text-xs ${c.tx} mt-0.5">${cnt>0?cnt+' รายการ':t.desc}</div>
+      </div><div class="text-gray-300 text-lg">›</div></button>`;
+  }).join('');
+  document.getElementById('sheet').classList.add('open');
+  document.getElementById('sheet-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeSheet() {
+  document.getElementById('sheet').classList.remove('open');
+  document.getElementById('sheet-overlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+// ─── SETTINGS ────────────────────────────────────────────
+function openSettings() {
+  const url = getSheetsURL();
+  document.getElementById('sheets-url-input').value = url;
+  renderSettingsBanner();
+  document.getElementById('settings-modal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeSettings() {
+  document.getElementById('settings-modal').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+function renderSettingsBanner() {
+  const url = getSheetsURL();
+  const banner = document.getElementById('settings-status-banner');
+  const icon   = document.getElementById('banner-icon');
+  const title  = document.getElementById('banner-title');
+  const sub    = document.getElementById('banner-sub');
+  if (!url) { banner.classList.add('hidden'); return; }
+  banner.classList.remove('hidden');
+  const ok = syncStatus==='connected';
+  banner.className = `rounded-2xl p-4 mb-5 ${ok?'bg-green-50 border-2 border-green-200':'bg-amber-50 border-2 border-amber-200'}`;
+  icon.textContent  = ok?'✅':'⚠️';
+  title.textContent = ok?'เชื่อมต่อ Google Sheets สำเร็จ':'ตั้งค่า URL แล้ว (ยังไม่ได้ทดสอบ)';
+  sub.textContent   = ok?'ข้อมูลจะถูกส่งขึ้น Sheets อัตโนมัติทุกครั้งที่บันทึก':'กด "ทดสอบการเชื่อมต่อ" เพื่อยืนยัน';
+  sub.className = `text-xs mt-0.5 ${ok?'text-green-600':'text-amber-600'}`;
+}
+
+async function testSheetsConnection() {
+  const url = document.getElementById('sheets-url-input').value.trim();
+  if (!url) { toast('กรุณากรอก URL ก่อน','red'); return; }
+  toast('กำลังทดสอบ...','blue');
+  const ok = await testConnection(url);
+  if (ok) {
+    setSheetsURL(url); syncStatus='connected';
+    toast('เชื่อมต่อสำเร็จ 🎉','green');
+  } else {
+    syncStatus='error';
+    toast('เชื่อมต่อล้มเหลว — ตรวจสอบ URL','red');
+  }
+  renderSettingsBanner(); updateStatusUI();
+}
+
+function saveSheetsURL() {
+  const url = document.getElementById('sheets-url-input').value.trim();
+  if (url && !url.startsWith('https://script.google.com')) {
+    toast('URL ไม่ถูกต้อง ควรเริ่มต้นด้วย https://script.google.com','red'); return;
+  }
+  setSheetsURL(url);
+  syncStatus = url ? 'connected' : 'local';
+  toast(url?'บันทึก URL สำเร็จ':'ยกเลิกการเชื่อมต่อแล้ว', url?'green':'red');
+  renderSettingsBanner(); updateStatusUI();
+}
+
+function clearSheetsURL() {
+  if (!confirm('ยกเลิกการเชื่อมต่อ Google Sheets?')) return;
+  localStorage.removeItem(SHEETS_URL_KEY);
+  document.getElementById('sheets-url-input').value='';
+  syncStatus='local';
+  renderSettingsBanner(); updateStatusUI();
+  toast('ยกเลิกการเชื่อมต่อแล้ว','red');
+}
+
+function copyGSCode() {
+  navigator.clipboard.writeText(GS_CODE).then(()=>{
+    const btn=document.getElementById('copy-gs-btn');
+    btn.textContent='✅ Copied!';
+    setTimeout(()=>btn.textContent='📋 Copy',2000);
+  }).catch(()=>toast('Copy ไม่ได้ — กด Ctrl+A ใน code block','red'));
+}
+
+// ─── RENDER ──────────────────────────────────────────────
+function renderPage() {
+  const pg = document.getElementById('page');
+  pg.className='page-inner mx-auto px-4 pt-4 pb-4 fade-in';
+  if (curPage==='home') { pg.innerHTML=renderHome(); return; }
+  if (curPage==='data') { pg.innerHTML=renderData(); return; }
+  const tool=TOOLS.find(t=>t.id===curPage);
+  if (tool) { pg.innerHTML=renderTool(tool); return; }
+}
+
+// ─── HOME ────────────────────────────────────────────────
+function renderHome() {
+  const total=TOOLS.reduce((s,t)=>s+STORE.get(t.key).length,0);
+  const hasSheets=!!getSheetsURL();
+  return `
+  <div class="mb-5">
+    <h1 class="text-xl font-bold text-gray-800">สวัสดี 👋</h1>
+    <p class="text-gray-500 text-sm mt-0.5">รวมทั้งหมด <strong class="text-gray-700">${total}</strong> รายการ</p>
+  </div>
+  ${!hasSheets ? `
+  <div class="card bg-blue-50 border-blue-200 mb-5 flex items-center gap-3 cursor-pointer" onclick="openSettings()">
+    <div class="text-2xl">📡</div>
+    <div class="flex-1">
+      <div class="font-bold text-blue-800 text-sm">เชื่อมต่อ Google Sheets</div>
+      <div class="text-xs text-blue-600 mt-0.5">สำรองข้อมูลบน Cloud ฟรี — แตะเพื่อตั้งค่า</div>
+    </div>
+    <div class="text-blue-400">›</div>
+  </div>` : `
+  <div class="card bg-green-50 border-green-200 mb-5 flex items-center gap-3 cursor-pointer" onclick="syncAllNow()">
+    <div class="text-2xl">📡</div>
+    <div class="flex-1">
+      <div class="font-bold text-green-800 text-sm">เชื่อมต่อ Google Sheets แล้ว</div>
+      <div class="text-xs text-green-600 mt-0.5">ข้อมูลซิงค์อัตโนมัติ — แตะเพื่อซิงค์ตอนนี้</div>
+    </div>
+    <div class="text-green-400">🔄</div>
+  </div>`}
+  <div class="space-y-3">
+    ${TOOLS.map(t=>{
+      const c=CLR[t.color], cnt=STORE.get(t.key).length;
+      return `<button onclick="nav('${t.id}')" class="card flex items-center gap-4 w-full text-left hover:shadow-md active:scale-99 transition-all">
+        <div class="ticon ${c.bi}">${t.icon}</div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="font-bold text-gray-800">${t.name}</span>
+            ${cnt>0?`<span class="text-xs px-2 py-0.5 rounded-full ${c.tag} font-semibold">${cnt}</span>`:''}
+          </div>
+          <div class="text-sm text-gray-400 mt-0.5 truncate">${t.desc}</div>
+        </div>
+        <div class="text-gray-300 text-xl flex-shrink-0">›</div>
+      </button>`;
+    }).join('')}
+  </div>`;
+}
+
+// ─── TOOL FORM ───────────────────────────────────────────
+function renderTool(tool) {
+  const c=CLR[tool.color], records=STORE.get(tool.key), fs=formState[tool.id]||{};
+  return `
+  <div class="card ${c.bg} border ${c.brd} mb-4 flex items-center gap-3 py-4">
+    <div class="ticon ${c.bi}">${tool.icon}</div>
+    <div><div class="text-xs font-semibold ${c.tx}">${tool.sub}</div><div class="font-bold text-gray-800">${tool.name}</div></div>
+  </div>
+
+  <form id="tool-form" onsubmit="submitForm(event,'${tool.id}')" novalidate>
+    <div class="card mb-4">
+      <label class="block text-sm font-semibold text-gray-700 mb-2">${tool.pLabel} <span class="text-red-400">*</span></label>
+      <input type="text" name="${tool.pKey}" required value="${esc(fs[tool.pKey]||'')}"
+        placeholder="${tool.pHint}" class="fi" style="font-size:17px;padding:16px 18px;font-weight:600"
+        autocomplete="off" oninput="ss('${tool.id}',this.name,this.value)">
+    </div>
+
+    <div class="card mb-4">
+      <label class="block text-sm font-semibold text-gray-700 mb-3">${tool.tLabel} <span class="text-red-400">*</span></label>
+      <div class="flex flex-wrap gap-2">
+        ${tool.types.map(tp=>`<button type="button" class="chip ${fs[tool.tKey]===tp?'selected':''}" style="${fs[tool.tKey]===tp?c.chip:''}"
+          onclick="pickChip('${tool.id}','${tool.tKey}','${tp}',this,'${c.chip}')">${tp}</button>`).join('')}
+      </div>
+      <input type="hidden" name="${tool.tKey}" id="hid-${tool.id}-${tool.tKey}" value="${esc(fs[tool.tKey]||'')}">
+    </div>
+
+    <div class="card mb-4">
+      <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">ข้อมูลหลัก</div>
+      <div class="space-y-4">${renderFields(tool.main,fs,tool.id,c)}</div>
+    </div>
+
+    <details class="card mb-5" ${Object.keys(fs).some(k=>tool.extra.find(f=>f.k===k)&&fs[k])?'open':''}>
+      <summary class="flex items-center justify-between -m-1 p-1 rounded-xl">
+        <span class="text-sm font-semibold text-gray-500">ข้อมูลเพิ่มเติม</span>
+        <span class="text-gray-400 text-xs bg-gray-100 px-3 py-1 rounded-full">ไม่บังคับ ▾</span>
+      </summary>
+      <div class="mt-4 space-y-4">${renderFields(tool.extra,fs,tool.id,c)}</div>
+    </details>
+
+    <button type="submit" class="submit-btn text-white mb-6" style="${c.btn};border-radius:18px">
+      💾  บันทึกข้อมูล${getSheetsURL()?'  &amp;  📡 ซิงค์ Sheets':''}
+    </button>
+  </form>
+
+  ${records.length>0?`
+  <div class="mb-4">
+    <div class="flex items-center justify-between mb-3">
+      <div class="font-bold text-gray-700">บันทึกแล้ว (${records.length})</div>
+      <div class="flex gap-3">
+        ${getSheetsURL()?`<button onclick="syncTool('${tool.key}')" class="text-sm text-blue-500 font-semibold bg-blue-50 px-3 py-1.5 rounded-xl">🔄 ซิงค์</button>`:''}
+        <button onclick="exportCSV('${tool.key}')" class="text-sm text-green-600 font-semibold bg-green-50 px-3 py-1.5 rounded-xl">⬇ CSV</button>
+      </div>
+    </div>
+    ${records.slice(0,8).map(r=>`
+    <div class="rec-card">
+      <div class="flex-1 min-w-0">
+        <div class="font-semibold text-gray-800 text-sm">${esc(r[tool.pKey]||'—')}</div>
+        <div class="flex flex-wrap gap-2 mt-1 items-center">
+          ${r[tool.tKey]?`<span class="text-xs px-2 py-0.5 rounded-full ${c.tag}">${r[tool.tKey]}</span>`:''}
+          <span class="text-xs text-gray-400">${r._date}</span>
+          ${r.informant?`<span class="text-xs text-gray-400">โดย ${r.informant}</span>`:''}
+        </div>
+      </div>
+      <button onclick="delRec('${tool.key}','${r._id}')" class="w-8 h-8 flex items-center justify-center rounded-full text-gray-300 hover:text-red-500 hover:bg-red-50 text-xl transition-colors flex-shrink-0">×</button>
+    </div>`).join('')}
+    ${records.length>8?`<div class="text-center text-sm text-gray-400 mt-2">และอีก ${records.length-8} รายการ · <button onclick="nav('data')" class="text-blue-500 underline">ดูทั้งหมด</button></div>`:''}
+  </div>`:''}`;
+}
+
+// ─── FIELD RENDERERS ─────────────────────────────────────
+function renderFields(fields,fs,tid,c) {
+  let html='',buf=[];
+  const flush=()=>{ if(!buf.length)return; html+=`<div class="grid grid-cols-2 gap-3">${buf.join('')}</div>`; buf=[]; };
+  for(const f of fields){ if(f.inline) buf.push(fld(f,fs,tid,c)); else{ flush(); html+=fld(f,fs,tid,c); } }
+  flush(); return html;
+}
+
+function fld(f,fs,tid,c) {
+  const v=fs[f.k]||(f.remember?localStorage.getItem('rem_'+f.k)||'':'');
+  const ch=`oninput="ss('${tid}','${f.k}',this.value)"`;
+  const lbl=`<label class="block text-sm font-semibold text-gray-600 mb-1.5">${f.label}</label>`;
+  const hint=f.hint?`<p class="text-xs text-gray-400 mt-1.5">${f.hint}</p>`:'';
+
+  if(f.type==='gps') return `<div>${lbl}<div class="flex gap-2">
+    <input type="text" name="${f.k}_lat" placeholder="ละติจูด" value="${esc(fs[f.k+'_lat']||'')}" class="fi text-sm flex-1 min-w-0" inputmode="decimal" oninput="ss('${tid}','${f.k}_lat',this.value)">
+    <input type="text" name="${f.k}_lng" placeholder="ลองจิจูด" value="${esc(fs[f.k+'_lng']||'')}" class="fi text-sm flex-1 min-w-0" inputmode="decimal" oninput="ss('${tid}','${f.k}_lng',this.value)">
+    <button type="button" class="gps-btn flex-shrink-0" onclick="getGPS('${tid}','${f.k}')">📍</button>
+    </div></div>`;
+
+  if(f.type==='chip2') return `<div>${lbl}<div class="flex flex-wrap gap-2">
+    ${f.opts.map(o=>`<button type="button" class="chip ${v===o?'selected':''}" style="${v===o?c.chip:''}"
+      onclick="pickChip('${tid}','${f.k}','${o}',this,'${c.chip}')">${o}</button>`).join('')}
+    </div><input type="hidden" name="${f.k}" id="hid-${tid}-${f.k}" value="${esc(v)}"></div>`;
+
+  if(f.type==='monthchip') return `<div>${lbl}<div class="flex flex-wrap gap-2">
+    ${MONTHS.map(m=>`<button type="button" class="chip ${v===m?'selected':''}" style="${v===m?c.chip:''}"
+      onclick="pickChip('${tid}','${f.k}','${m}',this,'${c.chip}')">${m.substring(0,3)}</button>`).join('')}
+    <button type="button" class="chip ${'ตลอดปี'===v?'selected':''}" style="${'ตลอดปี'===v?c.chip:''}"
+      onclick="pickChip('${tid}','${f.k}','ตลอดปี',this,'${c.chip}')">ตลอดปี</button>
+    </div><input type="hidden" name="${f.k}" id="hid-${tid}-${f.k}" value="${esc(v)}"></div>`;
+
+  if(f.type==='select') return `<div>${lbl}<select name="${f.k}" class="fi" ${ch}>
+    <option value="">— เลือก —</option>
+    ${f.opts.map(o=>`<option ${v===o?'selected':''} value="${o}">${o}</option>`).join('')}
+    </select>${hint}</div>`;
+
+  if(f.type==='textarea') return `<div>${lbl}<textarea name="${f.k}" rows="3" class="fi" placeholder="${f.hint||''}" ${ch}>${esc(v)}</textarea>${hint}</div>`;
+
+  if(f.type==='date'){const today=new Date().toISOString().split('T')[0];return `<div>${lbl}<input type="date" name="${f.k}" value="${v||today}" class="fi" ${ch}></div>`;}
+
+  if(f.type==='number') return `<div>${lbl}<input type="number" name="${f.k}" value="${esc(v)}" placeholder="${f.placeholder||''}" class="fi" min="0" inputmode="numeric" pattern="[0-9]*" ${ch}></div>`;
+
+  return `<div>${lbl}<input type="text" name="${f.k}" value="${esc(v)}" placeholder="${f.placeholder||f.hint||''}" class="fi" autocomplete="off" ${ch}>${hint}</div>`;
+}
+
+// ─── DATA VIEW ───────────────────────────────────────────
+function renderData() {
+  const total=TOOLS.reduce((s,t)=>s+STORE.get(t.key).length,0);
+  const hasSheets=!!getSheetsURL();
+  return `
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <h2 class="text-lg font-bold text-gray-800">ข้อมูลทั้งหมด</h2>
+      <p class="text-sm text-gray-400">${total} รายการ</p>
+    </div>
+    <div class="flex gap-2">
+      ${hasSheets?`<button onclick="syncAllNow()" class="bg-blue-50 text-blue-600 px-3 py-2.5 rounded-xl text-sm font-bold border-2 border-blue-200">🔄 ซิงค์</button>`:''}
+      <button onclick="exportAll()" class="bg-green-600 text-white px-4 py-2.5 rounded-xl text-sm font-bold">⬇ CSV</button>
+    </div>
+  </div>
+  ${!hasSheets?`<div class="card bg-amber-50 border-amber-200 mb-4 flex items-center gap-3 cursor-pointer" onclick="openSettings()">
+    <span class="text-xl">💡</span>
+    <div class="flex-1 text-sm"><span class="font-semibold text-amber-800">ยังไม่ได้เชื่อมต่อ Google Sheets</span><br><span class="text-amber-600 text-xs">ข้อมูลเก็บในเครื่องนี้เท่านั้น — แตะเพื่อตั้งค่า</span></div>
+    <span class="text-amber-400">›</span>
+  </div>`:''}
+  ${TOOLS.map(t=>{
+    const c=CLR[t.color],recs=STORE.get(t.key);
+    return `<div class="card mb-3">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">${t.icon}</span>
+          <span class="font-bold text-gray-700 text-sm">${t.name}</span>
+          <span class="text-xs px-2 py-0.5 rounded-full ${c.tag} font-semibold">${recs.length}</span>
+        </div>
+        <div class="flex gap-3">
+          <button onclick="nav('${t.id}')" class="text-xs text-blue-500 font-semibold">+ เพิ่ม</button>
+          ${recs.length?`<button onclick="exportCSV('${t.key}')" class="text-xs text-green-500 font-semibold">⬇ CSV</button>`:''}
+        </div>
+      </div>
+      ${!recs.length?`<p class="text-sm text-gray-400 text-center py-3">ยังไม่มีข้อมูล</p>`:
+        recs.slice(0,4).map(r=>`<div class="rec-card">
+          <div class="flex-1 min-w-0 text-sm">
+            <span class="font-semibold text-gray-800">${esc(r[t.pKey]||'—')}</span>
+            ${r[t.tKey]?`<span class="ml-2 text-xs px-2 py-0.5 rounded-full ${c.tag}">${r[t.tKey]}</span>`:''}
+            <span class="ml-2 text-xs text-gray-400">${r._date}</span>
+          </div>
+          <button onclick="delRec('${t.key}','${r._id}')" class="w-8 h-8 flex items-center justify-center rounded-full text-gray-300 hover:text-red-500 text-xl flex-shrink-0">×</button>
+        </div>`).join('')+(recs.length>4?`<div class="text-xs text-gray-400 text-center mt-2">และอีก ${recs.length-4} รายการ</div>`:'')}
+    </div>`;
+  }).join('')}`;
+}
+
+// ─── ACTIONS ─────────────────────────────────────────────
+function ss(tid,k,v){if(!formState[tid])formState[tid]={};formState[tid][k]=v;}
+
+function pickChip(tid,key,val,btn,cs){
+  btn.parentElement.querySelectorAll('.chip').forEach(c=>{c.classList.remove('selected');c.removeAttribute('style');});
+  btn.classList.add('selected');btn.setAttribute('style',cs);
+  const h=document.getElementById('hid-'+tid+'-'+key);if(h)h.value=val;
+  ss(tid,key,val);
+}
+
+function getGPS(tid,fk){
+  if(!navigator.geolocation){toast('เบราว์เซอร์ไม่รองรับ GPS','red');return;}
+  toast('กำลังระบุตำแหน่ง...','blue');
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const lat=pos.coords.latitude.toFixed(6),lng=pos.coords.longitude.toFixed(6);
+    ss(tid,fk+'_lat',lat);ss(tid,fk+'_lng',lng);
+    const e1=document.querySelector(`[name="${fk}_lat"]`),e2=document.querySelector(`[name="${fk}_lng"]`);
+    if(e1)e1.value=lat;if(e2)e2.value=lng;
+    toast('บันทึกพิกัดสำเร็จ 📍','green');
+  },()=>toast('ไม่สามารถระบุตำแหน่งได้','red'));
+}
+
+async function submitForm(e,tid){
+  e.preventDefault();
+  const tool=TOOLS.find(t=>t.id===tid);
+  const form=document.getElementById('tool-form');
+  const fd=new FormData(form);
+  const pv=(fd.get(tool.pKey)||'').trim(), tv=fd.get(tool.tKey)||'';
+  if(!pv){toast('กรุณากรอก '+tool.pLabel,'red');form.querySelector(`[name="${tool.pKey}"]`).focus();return;}
+  if(!tv){toast('กรุณาเลือก '+tool.tLabel,'red');return;}
+
+  const rec={};
+  fd.forEach((v,k)=>{if(v)rec[k]=v.trim();});
+  STORE.add(tool.key,rec);
+  if(rec.informant) localStorage.setItem('rem_informant',rec.informant);
+  formState[tid]={};
+  refreshCounts();
+  toast('บันทึกสำเร็จ ✓','green');
+
+  // Sync to Sheets (fire-and-forget, no-cors)
+  const url=getSheetsURL();
+  if(url){
+    syncStatus='syncing'; updateStatusUI();
+    pushToSheets(tool.key,rec).then(()=>{
+      syncStatus='connected'; updateStatusUI();
+      toast('ซิงค์ Sheets แล้ว 📡','green');
+    });
+  }
+  nav(tid);
+}
+
+async function syncTool(toolKey){
+  const url=getSheetsURL(); if(!url){toast('ยังไม่ได้เชื่อมต่อ Sheets','red');return;}
+  toast('กำลังซิงค์...','blue'); syncStatus='syncing'; updateStatusUI();
+  const data=await pullFromSheets(toolKey);
+  if(data){
+    STORE.merge(toolKey,data.map(r=>({...r,_id:r._id||Date.now()+'',_date:r._date||''})));
+    refreshCounts(); toast('ซิงค์สำเร็จ 📡','green'); syncStatus='connected';
+  } else {
+    toast('ซิงค์ล้มเหลว','red'); syncStatus='error';
+  }
+  updateStatusUI(); renderPage();
+}
+
+async function syncAllNow(){
+  const url=getSheetsURL(); if(!url){openSettings();return;}
+  toast('กำลังซิงค์ทั้งหมด...','blue'); syncStatus='syncing'; updateStatusUI();
+  const all=await pullAllFromSheets();
+  if(all){
+    TOOLS.forEach(t=>{ if(all[t.key]) STORE.merge(t.key,all[t.key].map(r=>({...r,_id:r._id||Date.now()+'',_date:r._date||''}))); });
+    refreshCounts(); toast('ซิงค์ทั้งหมดสำเร็จ 📡','green'); syncStatus='connected';
+  } else {
+    toast('ซิงค์ล้มเหลว','red'); syncStatus='error';
+  }
+  updateStatusUI(); renderPage();
+}
+
+function delRec(key,id){
+  if(!confirm('ลบรายการนี้?'))return;
+  STORE.del(key,id); refreshCounts(); toast('ลบแล้ว','red'); renderPage();
+}
+
+function exportCSV(key){
+  const data=STORE.get(key); if(!data.length){toast('ไม่มีข้อมูล','red');return;}
+  const keys=[...new Set(data.flatMap(r=>Object.keys(r)))];
+  const csv=[keys.join(','),...data.map(r=>keys.map(k=>JSON.stringify(r[k]||'')).join(','))].join('\n');
+  dl(key+'_'+Date.now()+'.csv',csv); toast('ส่งออก CSV สำเร็จ','green');
+}
+
+function exportAll(){
+  let out='';
+  TOOLS.forEach(t=>{
+    const d=STORE.get(t.key);if(!d.length)return;
+    const k=[...new Set(d.flatMap(r=>Object.keys(r)))];
+    out+='# '+t.name+'\n'+k.join(',')+'\n'+d.map(r=>k.map(k2=>JSON.stringify(r[k2]||'')).join(',')).join('\n')+'\n\n';
+  });
+  if(!out){toast('ยังไม่มีข้อมูล','red');return;}
+  dl('community_data.csv',out); toast('ส่งออกสำเร็จ','green');
+}
+
+function dl(name,content){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\uFEFF'+content],{type:'text/csv;charset=utf-8'}));
+  a.download=name;a.click();
+}
+
+function toast(msg,type){
+  document.querySelectorAll('.toast').forEach(t=>t.remove());
+  const col={green:'#16a34a',blue:'#2563eb',red:'#dc2626'};
+  const el=document.createElement('div');
+  el.className='toast';el.style.background=col[type]||'#374151';el.style.color='#fff';
+  el.textContent=msg;document.body.appendChild(el);
+  setTimeout(()=>el.style.opacity='0',2200);setTimeout(()=>el.remove(),2500);
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+
+// ─── INIT ────────────────────────────────────────────────
+if(getSheetsURL()) syncStatus='connected';
+refreshCounts(); updateNav(); renderPage();
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editor
+.vscode/
+.idea/
+
+# Local Claude settings (ไม่ต้อง share)
+.claude/settings.local.json
+
+# Logs
+*.log
